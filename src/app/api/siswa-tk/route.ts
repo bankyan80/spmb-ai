@@ -46,8 +46,9 @@ export async function GET(request: NextRequest) {
       where.nik = nik;
     }
 
+    // Note: rombel is used instead of kelas in the schema
     if (kelas) {
-      where.kelas = kelas;
+      where.rombel = kelas;
     }
 
     if (tahunAjaran) {
@@ -149,7 +150,7 @@ export async function POST(request: NextRequest) {
     const siswa = await db.siswaTK.create({
       data: {
         lembagaPaudId: body.lembagaPaudId,
-        nis: body.nis || null,
+        nipd: body.nipd || null,
         nisn: body.nisn || null,
         namaSiswa: body.namaSiswa,
         nik: body.nik || null,
@@ -160,7 +161,7 @@ export async function POST(request: NextRequest) {
         alamat: body.alamat || null,
         rt: body.rt || null,
         rw: body.rw || null,
-        desa: body.desa || null,
+        kelurahan: body.kelurahan || body.desa || null,
         kecamatan: body.kecamatan || null,
         namaAyah: body.namaAyah || null,
         nikAyah: body.nikAyah || null,
@@ -168,9 +169,9 @@ export async function POST(request: NextRequest) {
         namaIbu: body.namaIbu || null,
         nikIbu: body.nikIbu || null,
         pekerjaanIbu: body.pekerjaanIbu || null,
-        noHpOrtu: body.noHpOrtu || null,
+        hp: body.hp || body.noHpOrtu || null,
         tahunAjaran: body.tahunAjaran || null,
-        kelas: body.kelas || null,
+        rombel: body.rombel || body.kelas || null,
         tahunMasuk: body.tahunMasuk || null,
         catatan: body.catatan || null,
       },
