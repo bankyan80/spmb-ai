@@ -1,0 +1,459 @@
+// SPMB AI - Prisma Schema
+// Database untuk manajemen siswa TK/PAUD/KB dan PPDB SD
+// Sesuai format Dapodik (Data Pokok Pendidikan)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// MODEL: Lembaga PAUD (TK/PAUD/KB/RA)
+// ============================================
+
+model LembagaPaud {
+  id              String     @id @default(cuid())
+  namaLembaga     String     // Nama lembaga, contoh: TK Aisyiyah Lemahabang
+  npsn            String     @unique // Nomor Pokok Sekolah Nasional
+  jenisLembaga    String     // TK, PAUD, KB, RA (Raudhatul Athfal), SPS (Satuan PAUD Sejenis)
+  alamat          String     // Alamat lengkap
+  desa            String     // Nama desa/kelurahan
+  kecamatan       String     // Nama kecamatan
+  kabupaten       String     @default("Cirebon")
+  provinsi        String     @default("Jawa Barat")
+  penanggungJawab String?    // Nama kepala lembaga
+  noTelp          String?    // Nomor telepon lembaga
+  email           String?    // Email lembaga
+  statusAktif     Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  // Relations
+  siswa       SiswaTK[]
+  importLogs  ImportLog[]
+
+  @@index([kecamatan])
+  @@index([jenisLembaga])
+}
+
+// ============================================
+// MODEL: Siswa TK/PAUD/KB
+// Format sesuai Dapodik (Data Pokok Pendidikan)
+// ============================================
+
+model SiswaTK {
+  id              String    @id @default(cuid())
+  lembagaPaudId   String    // FK ke LembagaPaud
+
+  // === Data Identitas Siswa ===
+  nipd            String?   // NIPD (Nomor Induk Pendidikan Daerah)
+  nisn            String?   // NISN (Nomor Induk Siswa Nasional)
+  namaSiswa       String    // Nama lengkap siswa
+  nik             String?   // NIK (Nomor Induk Kependudukan)
+  tempatLahir     String?   // Tempat lahir
+  tanggalLahir    DateTime? // Tanggal lahir
+  jenisKelamin    String?   // L (Laki-laki) / P (Perempuan)
+  agama           String?   // Islam, Kristen, Katolik, Hindu, Buddha, Konghucu
+
+  // === Data Alamat ===
+  alamat          String?   // Alamat tempat tinggal
+  rt              String?   // RT
+  rw              String?   // RW
+  dusun           String?   // Nama dusun
+  kelurahan       String?   // Desa/Kelurahan tempat tinggal
+  kecamatan       String?   // Kecamatan tempat tinggal
+  kodePos         String?   // Kode pos
+  jenisTinggal    String?   // Bersama orang tua, dll
+  alatTransportasi String?  // Sepeda motor, dll
+
+  // === Data Kontak ===
+  telepon         String?   // Nomor telepon rumah
+  hp              String?   // Nomor HP
+  email           String?   // Alamat email
+
+  // === Data Ayah ===
+  namaAyah        String?   // Nama ayah
+  tahunLahirAyah  String?   // Tahun lahir ayah
+  jenjangPendidikanAyah String? // SD, SMP, SMA, D3, S1, dll
+  pekerjaanAyah   String?   // Pekerjaan ayah
+  penghasilanAyah String?   // Range penghasilan ayah
+  nikAyah         String?   // NIK ayah
+
+  // === Data Ibu ===
+  namaIbu         String?   // Nama ibu
+  tahunLahirIbu   String?   // Tahun lahir ibu
+  jenjangPendidikanIbu String? // SD, SMP, SMA, D3, S1, dll
+  pekerjaanIbu    String?   // Pekerjaan ibu
+  penghasilanIbu  String?   // Range penghasilan ibu
+  nikIbu          String?   // NIK ibu
+
+  // === Data Wali ===
+  namaWali        String?   // Nama wali
+  tahunLahirWali  String?   // Tahun lahir wali
+  jenjangPendidikanWali String? // Jenjang pendidikan wali
+  pekerjaanWali   String?   // Pekerjaan wali
+  penghasilanWali String?   // Range penghasilan wali
+  nikWali         String?   // NIK wali
+
+  // === Data Kelas & Akademik ===
+  rombel          String?   // Rombel saat ini (A, B, dll)
+  tahunAjaran     String?   // Tahun ajaran, contoh: 2025/2026
+  tahunMasuk      String?   // Tahun masuk lembaga
+
+  // === Data Bantuan Sosial ===
+  penerimaKPS     String?   // Ya/Tidak
+  noKPS           String?   // Nomor KPS
+  penerimaKIP     String?   // Ya/Tidak
+  nomorKIP        String?   // Nomor KIP
+  namaDiKIP       String?   // Nama di KIP
+  nomorKKS        String?   // Nomor KKS
+  noRegAktaLahir  String?   // No Registrasi Akta Lahir
+  layakPIP        String?   // Ya/Tidak
+  alasanPIP       String?   // Alasan layak PIP
+
+  // === Data Lainnya ===
+  kebutuhanKhusus String?   // Kebutuhan khusus (Tidak ada, dll)
+  sekolahAsal     String?   // Sekolah asal (jika pindahan)
+  anakKe          Int?      // Anak ke-berapa
+  noKK            String?   // Nomor Kartu Keluarga
+  beratBadan      Int?      // Berat badan (kg)
+  tinggiBadan     Int?      // Tinggi badan (cm)
+  lingkarKepala   Int?      // Lingkar kepala (cm)
+  jmlSaudaraKandung Int?    // Jumlah saudara kandung
+  jarakRumahKm    Int?      // Jarak rumah ke sekolah (KM)
+  lintang         String?   // Latitude GPS
+  bujur           String?   // Longitude GPS
+
+  // === Metadata ===
+  statusAktif     Boolean   @default(true)
+  catatan         String?   // Catatan tambahan
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  lembagaPaud LembagaPaud @relation(fields: [lembagaPaudId], references: [id], onDelete: Cascade)
+
+  @@index([lembagaPaudId])
+  @@index([namaSiswa])
+  @@index([nik])
+  @@index([nisn])
+  @@index([kecamatan])
+  @@index([noKK])
+}
+
+// ============================================
+// MODEL: Import Log (Riwayat Import CSV)
+// ============================================
+
+model ImportLog {
+  id               String      @id @default(cuid())
+  fileName         String      // Nama file CSV
+  sourceUrl        String      // URL sumber CSV / Google Sheet
+  lembagaPaudId    String      // FK ke LembagaPaud
+  totalRecords     Int         @default(0)  // Total baris di CSV
+  importedRecords  Int         @default(0)  // Berhasil diimport
+  failedRecords    Int         @default(0)  // Gagal diimport
+  failedDetails    String?     // JSON detail error per baris
+  status           String      @default("processing") // processing, completed, completed_with_errors, failed
+  errorMessage     String?     // Pesan error umum
+  importedAt       DateTime    @default(now())
+  completedAt      DateTime?
+
+  // Relations
+  lembagaPaud LembagaPaud @relation(fields: [lembagaPaudId], references: [id], onDelete: Cascade)
+
+  @@index([lembagaPaudId])
+  @@index([status])
+  @@index([importedAt])
+}
+
+// ============================================
+// MODEL: User (Petugas/Admin SPMB)
+// ============================================
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  nama        String
+  role        String   @default("operator") // operator, admin
+  schoolId    String?  // ID sekolah SD yang dikelola (untuk operator)
+  statusAktif Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school School? @relation(fields: [schoolId], references: [id])
+}
+
+// ============================================
+// MODEL: Sekolah SD (PPDB target)
+// ============================================
+
+model School {
+  id           String   @id @default(cuid())
+  namaSekolah  String
+  npsn         String   @unique
+  jenjang      String   @default("SD")
+  alamat       String
+  desa         String
+  kecamatan    String
+  latitude     Float
+  longitude    Float
+  kuota        Int      @default(100)
+  sisaKuota    Int      @default(0)
+  statusAktif  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applicants   Applicant[]
+  users        User[]
+
+  @@index([kecamatan])
+  @@index([statusAktif])
+}
+
+// ============================================
+// MODEL: Pemohon / Applicant (Pendaftar SD)
+// ============================================
+
+model Applicant {
+  id                String   @id @default(cuid())
+  nomorPendaftaran  String   @unique
+  nik               String
+  nisn              String?
+  namaSiswa         String
+  tempatLahir       String?
+  tanggalLahir      DateTime?
+  jenisKelamin      String?
+  agama             String?
+  alamat            String?
+  desa              String?
+  kecamatan         String?
+  namaAyah          String?
+  nikAyah           String?
+  pekerjaanAyah     String?
+  namaIbu           String?
+  nikIbu            String?
+  pekerjaanIbu      String?
+  noHpOrtu          String?
+  schoolId          String
+  jalur             String   @default("domisili") // domisili, afirmasi, mutasi, prestasi, zoning
+  statusBerkas      String   @default("belum_lengkap") // lengkap, belum_lengkap, perlu_perbaikan
+  statusPendaftaran String   @default("draft") // draft, terkirim, menunggu_verifikasi, perlu_perbaikan, terverifikasi, diterima, cadangan, tidak_diterima, sudah_daftar_ulang
+  catatanOperator   String?
+  statusAktif       Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  documents        Document[]
+  reRegistrations  ReRegistration[]
+
+  @@index([schoolId])
+  @@index([nik])
+  @@index([namaSiswa])
+  @@index([statusPendaftaran])
+  @@index([jalur])
+}
+
+// ============================================
+// MODEL: Pengumuman / Announcement
+// ============================================
+
+model Announcement {
+  id              String   @id @default(cuid())
+  title           String
+  content         String
+  tahunAjaran     String   @default("2025/2026")
+  statusPublikasi String   @default("draft") // draft, published
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([statusPublikasi])
+  @@index([tahunAjaran])
+}
+
+// ============================================
+// MODEL: Pengaturan SPMB
+// ============================================
+
+model SettingsSPMB {
+  id                    String  @id @default(cuid())
+  tahunAjaran           String  @default("2025/2026")
+  tanggalAcuanUsia      String  @default("2026-07-01")
+  usiaMinimalSD         Int     @default(6)
+  usiaPrioritasSD       Int     @default(7)
+  usiaPengecualianBulan Int     @default(6)
+  kuotaDomisili         Int     @default(60)
+  kuotaAfirmasi         Int     @default(15)
+  kuotaMutasi           Int     @default(5)
+  statusPendaftaran     String  @default("dibuka") // dibuka, ditutup
+  updatedAt             DateTime @updatedAt
+  createdAt             DateTime @default(now())
+}
+
+// ============================================
+// MODEL: Dokumen Pemohon
+// ============================================
+
+model Document {
+  id               String   @id @default(cuid())
+  applicantId      String
+  jenisDokumen     String   // KK, Akta, KTP, Ijazah TK, Pas Foto, dll
+  fileUrl          String?
+  statusVerifikasi String   @default("belum_diverifikasi") // belum_diverifikasi, terverifikasi, ditolak
+  catatan          String?
+  uploadedAt       DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+  @@index([statusVerifikasi])
+}
+
+// ============================================
+// MODEL: Daftar Ulang
+// ============================================
+
+model ReRegistration {
+  id               String   @id @default(cuid())
+  applicantId      String   @unique
+  nomorPendaftaran String
+  statusDaftarUlang String  @default("menunggu_verifikasi") // menunggu_verifikasi, terverifikasi, perlu_perbaikan
+  dataSiswaLengkap Boolean  @default(false)
+  dokumenLengkap   Boolean  @default(false)
+  catatanOperator  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+  @@index([statusDaftarUlang])
+}
+
+// ============================================
+// MODEL: Verifikasi Log (Riwayat Verifikasi)
+// ============================================
+
+model VerificationLog {
+  id              String   @id @default(cuid())
+  applicantId     String
+  schoolId        String
+  operatorId      String
+  namaOperator    String
+  aksi            String   // verifikasi, tolak, minta_perbaikan, daftar_ulang
+  statusSebelum   String
+  statusSesudah   String
+  catatan         String?
+  waktuAksi       DateTime @default(now())
+
+  @@index([applicantId])
+  @@index([operatorId])
+  @@index([waktuAksi])
+}
+
+// ============================================
+// MODEL: Activity Log (Log Aktivitas Sistem)
+// ============================================
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String   // admin, operator
+  aksi      String   // login, create_applicant, verify, export, dll
+  targetId  String?
+  deskripsi String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([aksi])
+  @@index([createdAt])
+}
+
+// ============================================
+// MODEL: Parent Access (Akses Orang Tua)
+// ============================================
+
+model ParentAccess {
+  id          String   @id @default(cuid())
+  parentId    String   @unique
+  namaOrangTua String
+  noHp        String?
+  nikSiswa    String?
+  applicantId String   @unique
+  lastLogin   DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([noHp])
+  @@index([nikSiswa])
+}
+
+// ============================================
+// MODEL: Chat AI Settings (Pengaturan Chat AI)
+// ============================================
+
+model ChatAISettings {
+  id                      String   @id @default(cuid())
+  modelAI                 String   @default("gemini-2.0-flash") // Model AI yang digunakan
+  aktifkanGoogleSearch    Boolean  @default(true) // Aktifkan pencarian Google
+  aktifkanSlowTyping      Boolean  @default(true) // Aktifkan efek slow typing
+  kecepatanTyping         String   @default("normal") // lambat, normal, cepat
+  maksimalHasilGoogle    Int      @default(5) // Maksimal hasil Google (3-5)
+  sumberUtama             String   @default("data_aplikasi") // Sumber utama jawaban
+  sumberTambahan          String   @default("google_search") // Sumber tambahan
+  systemPrompt            String?  // Prompt sistem AI kustom
+  pesanFallback           String   @default("Maaf, saya tidak dapat memproses pertanyaan Anda saat ini. Silakan coba lagi atau hubungi panitia SPMB.") // Pesan fallback jika AI gagal
+  updatedAt               DateTime @updatedAt
+  createdAt               DateTime @default(now())
+}
+
+// ============================================
+// MODEL: Chat Analysis Log (Hasil Analisa Chat)
+// ============================================
+
+model ChatAnalysisLog {
+  id                        String   @id @default(cuid())
+  parentId                  String?  // ID pesan induk (chat log)
+  pertanyaan                String   // Pertanyaan pengguna
+  kategoriPertanyaan        String   // Kategori: info_spmb, usia_anak, domisili, pendaftaran, status_daftar, pengumuman, daftar_ulang, keluhan, umum
+  sumberJawaban             String   // data_aplikasi, google_search, gabungan
+  menggunakanDataAplikasi   Boolean  @default(false)
+  menggunakanGoogleSearch   Boolean  @default(false)
+  queryGoogle               String?  // Query pencarian Google
+  hasilRingkasanGoogle      String?  // Ringkasan hasil Google
+  jawabanAkhir              String?  // Jawaban akhir yang diberikan
+  model                     String   @default("gemini-2.0-flash")
+  waktuAnalisa              Int?     // Waktu analisa dalam ms
+  createdAt                 DateTime @default(now())
+
+  @@index([kategoriPertanyaan])
+  @@index([sumberJawaban])
+  @@index([createdAt])
+}
+
+// ============================================
+// MODEL: Chat Log (Riwayat Chat)
+// ============================================
+
+model ChatLog {
+  id              String   @id @default(cuid())
+  parentId        String?  // ID pesan induk
+  role            String   // user, ai
+  content         String   // Isi pesan
+  menu            String?  // Menu terkait
+  typingMode      String   @default("slow") // slow, instant
+  typingSpeed     String   @default("normal") // lambat, normal, cepat
+  sourceType      String?  // data_aplikasi, google_search, gabungan
+  analysisId      String?  // FK ke ChatAnalysisLog
+  model           String   @default("gemini-2.0-flash")
+  createdAt       DateTime @default(now())
+
+  @@index([role])
+  @@index([createdAt])
+}
