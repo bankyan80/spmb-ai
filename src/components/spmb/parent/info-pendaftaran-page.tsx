@@ -11,6 +11,8 @@ import {
   Search,
   Bell,
   CheckCircle,
+  AlertTriangle,
+  BookX,
 } from 'lucide-react';
 import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
@@ -63,95 +65,177 @@ export function InfoPendaftaranPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pb-4">
-        {/* Jadwal Pendaftaran */}
-        <InfoSection icon={<Calendar className="size-5" />} title="Jadwal Pendaftaran" color="#1565C0">
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="size-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: '#1565C0' }} />
-              <div>
-                <p className="text-xs font-medium" style={{ color: '#6B7280' }}>Pendaftaran</p>
-                <p className="text-sm font-medium" style={{ color: '#1F2937' }}>{spmbSchedule.pendaftaran}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="size-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: '#009688' }} />
-              <div>
-                <p className="text-xs font-medium" style={{ color: '#6B7280' }}>Verifikasi Berkas</p>
-                <p className="text-sm font-medium" style={{ color: '#1F2937' }}>{spmbSchedule.verifikasi}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="size-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: '#F59E0B' }} />
-              <div>
-                <p className="text-xs font-medium" style={{ color: '#6B7280' }}>Pengumuman</p>
-                <p className="text-sm font-medium" style={{ color: '#1F2937' }}>{spmbSchedule.pengumuman}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="size-2 rounded-full mt-1.5 shrink-0" style={{ backgroundColor: '#43A047' }} />
-              <div>
-                <p className="text-xs font-medium" style={{ color: '#6B7280' }}>Daftar Ulang</p>
-                <p className="text-sm font-medium" style={{ color: '#1F2937' }}>{spmbSchedule.daftarUlang}</p>
-              </div>
-            </div>
+
+        {/* Regulasi & Dasar Hukum */}
+        <InfoSection icon={<BookX className="size-5" />} title="Dasar Regulasi" color="#1565C0">
+          <div className="space-y-2">
+            <p className="text-sm leading-relaxed" style={{ color: '#374151' }}>
+              Sistem Penerimaan Murid Baru (SPMB) atau Penerimaan Peserta Didik Baru (PPDB) untuk jenjang SD Tahun Ajaran 2026/2027 secara nasional mengacu pada regulasi terbaru Kemendikdasmen (Permendikdasmen No. 3 Tahun 2025).
+            </p>
+            <p className="text-sm leading-relaxed" style={{ color: '#374151' }}>
+              Proses seleksi menitikberatkan pada aspek <strong>usia</strong> dan <strong>domisili</strong>, serta secara tegas melarang tes membaca, menulis, dan berhitung (calistung) sebagai syarat masuk.
+            </p>
           </div>
         </InfoSection>
 
         {/* Syarat Usia */}
         <InfoSection icon={<Baby className="size-5" />} title="Syarat Usia" color="#009688">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="size-2 rounded-full shrink-0" style={{ backgroundColor: '#009688' }} />
-              <p className="text-sm" style={{ color: '#1F2937' }}>
-                Usia minimal: <span className="font-semibold">{mockSettings.usiaMinimalSD} tahun</span>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="size-2 rounded-full shrink-0" style={{ backgroundColor: '#009688' }} />
-              <p className="text-sm" style={{ color: '#1F2937' }}>
-                Usia prioritas: <span className="font-semibold">{mockSettings.usiaPrioritasSD} tahun</span>
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="size-2 rounded-full shrink-0" style={{ backgroundColor: '#009688' }} />
-              <p className="text-sm" style={{ color: '#1F2937' }}>
-                Tanggal acuan: <span className="font-semibold">{formatDate(mockSettings.tanggalAcuanUsia)}</span>
-              </p>
-            </div>
+          <div className="space-y-3">
+            <p className="text-xs font-medium" style={{ color: '#6B7280' }}>
+              Penentuan usia dihitung per <strong>{formatDate(mockSettings.tanggalAcuanUsia)}</strong>:
+            </p>
+
             <div
-              className="mt-2 rounded-lg p-3 text-xs"
-              style={{ backgroundColor: '#E8F5E9', color: '#2E7D32' }}
+              className="rounded-lg p-3 border"
+              style={{ backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' }}
             >
-              Anak yang berusia {mockSettings.usiaMinimalSD} tahun pada tanggal {formatDate(mockSettings.tanggalAcuanUsia)} dapat mendaftar. Anak berusia di bawah {mockSettings.usiaMinimalSD} tahun namun sudah {mockSettings.usiaPengecualianBulan} bulan sebelum tanggal acuan memerlukan rekomendasi khusus.
+              <div className="flex items-center gap-2 mb-1">
+                <CheckCircle className="size-4" style={{ color: '#2E7D32' }} />
+                <p className="text-sm font-semibold" style={{ color: '#1B5E20' }}>
+                  Usia Prioritas Utama: {mockSettings.usiaPrioritasSD} Tahun
+                </p>
+              </div>
+              <p className="text-xs" style={{ color: '#2E7D32' }}>
+                Calon murid yang sudah berusia {mockSettings.usiaPrioritasSD} tahun wajib diterima dan mendapatkan prioritas tertinggi dalam antrean seleksi.
+              </p>
+            </div>
+
+            <div
+              className="rounded-lg p-3 border"
+              style={{ backgroundColor: '#E3F2FD', borderColor: '#90CAF9' }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <CheckCircle className="size-4" style={{ color: '#1565C0' }} />
+                <p className="text-sm font-semibold" style={{ color: '#0D47A1' }}>
+                  Usia Minimal Standar: {mockSettings.usiaMinimalSD} Tahun
+                </p>
+              </div>
+              <p className="text-xs" style={{ color: '#1565C0' }}>
+                Calon murid berusia paling rendah {mockSettings.usiaMinimalSD} tahun diperbolehkan mendaftar.
+              </p>
+            </div>
+
+            <div
+              className="rounded-lg p-3 border"
+              style={{ backgroundColor: '#FFF3E0', borderColor: '#FFCC80' }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="size-4" style={{ color: '#E65100' }} />
+                <p className="text-sm font-semibold" style={{ color: '#E65100' }}>
+                  Pengecualian Khusus: 5 Tahun 6 Bulan
+                </p>
+              </div>
+              <p className="text-xs" style={{ color: '#E65100' }}>
+                Anak yang berusia minimal 5 tahun 6 bulan boleh mendaftar <strong>hanya jika</strong> memiliki potensi kecerdasan/bakat istimewa serta kesiapan psikologis, dibuktikan dengan <strong>surat rekomendasi tertulis dari psikolog profesional</strong> (atau Dewan Guru sekolah jika psikolog tidak tersedia di daerah tersebut).
+              </p>
+            </div>
+
+            <div
+              className="rounded-lg p-3 text-xs flex items-start gap-2"
+              style={{ backgroundColor: '#FFEBEE', color: '#C62828', border: '1px solid #EF9A9A' }}
+            >
+              <BookX className="size-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Dilarang Tes Calistung!</p>
+                <p className="mt-0.5">
+                  Sekolah dilarang keras mengadakan tes Membaca, Menulis, dan Berhitung (Calistung) sebagai standar seleksi masuk kelas 1 SD.
+                </p>
+              </div>
             </div>
           </div>
         </InfoSection>
 
         {/* Jalur Pendaftaran */}
-        <InfoSection icon={<Route className="size-5" />} title="Jalur Pendaftaran" color="#1565C0">
+        <InfoSection icon={<Route className="size-5" />} title="Jalur Pendaftaran & Kuota" color="#1565C0">
           <div className="space-y-3">
             {jalurPendaftaran.map((jalur) => (
               <div
                 key={jalur.id}
-                className="flex items-center justify-between rounded-lg p-3"
+                className="rounded-lg p-3"
                 style={{ backgroundColor: '#F3F8FF' }}
               >
-                <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between mb-1">
                   <p className="text-sm font-medium" style={{ color: '#1F2937' }}>
                     {jalur.nama}
                   </p>
-                  <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>
-                    {jalur.deskripsi}
-                  </p>
+                  <span
+                    className="shrink-0 text-xs font-bold px-2.5 py-1 rounded-full"
+                    style={{ backgroundColor: '#1565C0', color: '#FFFFFF' }}
+                  >
+                    {jalur.kuota}%
+                  </span>
                 </div>
-                <span
-                  className="ml-2 shrink-0 text-xs font-bold px-2.5 py-1 rounded-full"
-                  style={{ backgroundColor: '#1565C0', color: '#FFFFFF' }}
-                >
-                  {jalur.kuota}%
-                </span>
+                <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>
+                  {jalur.deskripsi}
+                </p>
               </div>
             ))}
+
+            <div
+              className="rounded-lg p-3 text-xs"
+              style={{ backgroundColor: '#FEF3C7', color: '#92400E', border: '1px solid #FDE68A' }}
+            >
+              <p className="font-medium">Catatan:</p>
+              <p>Proporsi kuota dapat sedikit bervariasi tergantung kebijakan pemerintah daerah masing-masing.</p>
+            </div>
+          </div>
+        </InfoSection>
+
+        {/* Dokumen Persyaratan */}
+        <InfoSection icon={<FileText className="size-5" />} title="Dokumen Persyaratan" color="#009688">
+          <div className="space-y-3">
+            <p className="text-xs" style={{ color: '#6B7280' }}>
+              Siapkan berkas berikut (asli dan hasil scan digital, maksimal 1 MB per file):
+            </p>
+            {syaratDokumen.map((doc, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <div
+                  className="flex items-center justify-center size-6 rounded-full shrink-0 text-xs font-bold"
+                  style={{ backgroundColor: '#E0F2F1', color: '#009688' }}
+                >
+                  {idx + 1}
+                </div>
+                <p className="text-sm" style={{ color: '#1F2937' }}>{doc}</p>
+              </div>
+            ))}
+          </div>
+        </InfoSection>
+
+        {/* Jadwal Pendaftaran */}
+        <InfoSection icon={<Calendar className="size-5" />} title="Jadwal Pendaftaran" color="#1565C0">
+          <div className="space-y-3">
+            <p className="text-xs" style={{ color: '#6B7280' }}>
+              Perkiraan timeline pelaksanaan SPMB SD 2026/2027:
+            </p>
+            <div className="space-y-2">
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center size-7 rounded-full shrink-0 text-xs font-bold" style={{ backgroundColor: '#E3F2FD', color: '#1565C0' }}>1</div>
+                <div>
+                  <p className="text-xs font-medium" style={{ color: '#6B7280' }}>Awal - Pertengahan Juni 2026</p>
+                  <p className="text-sm" style={{ color: '#1F2937' }}>
+                    Sosialisasi, pembuatan akun, unggah berkas, dan pendaftaran jalur afirmasi/mutasi
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center size-7 rounded-full shrink-0 text-xs font-bold" style={{ backgroundColor: '#E0F2F1', color: '#009688' }}>2</div>
+                <div>
+                  <p className="text-xs font-medium" style={{ color: '#6B7280' }}>Pertengahan - Akhir Juni 2026</p>
+                  <p className="text-sm" style={{ color: '#1F2937' }}>
+                    Pendaftaran jalur domisili/zonasi dan verifikasi berkas oleh sekolah
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="flex items-center justify-center size-7 rounded-full shrink-0 text-xs font-bold" style={{ backgroundColor: '#FEF3C7', color: '#D97706' }}>3</div>
+                <div>
+                  <p className="text-xs font-medium" style={{ color: '#6B7280' }}>Akhir Juni - Awal Juli 2026</p>
+                  <p className="text-sm" style={{ color: '#1F2937' }}>
+                    Pengumuman hasil seleksi, masa sanggah, dan proses daftar ulang
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </InfoSection>
 
@@ -206,29 +290,13 @@ export function InfoPendaftaranPage() {
           </div>
         </InfoSection>
 
-        {/* Syarat Dokumen */}
-        <InfoSection icon={<FileText className="size-5" />} title="Syarat Dokumen" color="#009688">
-          <div className="space-y-2">
-            {syaratDokumen.map((doc, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div
-                  className="flex items-center justify-center size-6 rounded-full shrink-0 text-xs font-bold"
-                  style={{ backgroundColor: '#E0F2F1', color: '#009688' }}
-                >
-                  {idx + 1}
-                </div>
-                <p className="text-sm" style={{ color: '#1F2937' }}>{doc}</p>
-              </div>
-            ))}
-          </div>
-        </InfoSection>
-
         {/* Cara Daftar */}
         <InfoSection icon={<ClipboardList className="size-5" />} title="Cara Daftar" color="#1565C0">
           <div className="space-y-3">
             {[
               'Cek usia anak melalui menu "Cek Usia Anak"',
               'Cek domisili dan pilih sekolah melalui menu "Cek Domisili"',
+              'Siapkan dokumen persyaratan (scan digital max 1 MB)',
               'Klik menu "Daftar" untuk memulai pendaftaran',
               'Isi data diri anak dan orang tua/wali',
               'Upload dokumen yang diperlukan',
@@ -274,7 +342,7 @@ export function InfoPendaftaranPage() {
         <InfoSection icon={<Bell className="size-5" />} title="Cara Pengumuman" color="#F59E0B">
           <div className="space-y-3">
             {[
-              'Pengumuman diumumkan pada tanggal ' + spmbSchedule.pengumuman,
+              'Pengumuman diumumkan pada akhir Juni - awal Juli 2026',
               'Buka menu "Pengumuman" di aplikasi',
               'Masukkan nomor pendaftaran untuk melihat hasil',
               'Hasil bisa diterima, cadangan, atau tidak diterima',
@@ -315,8 +383,8 @@ export function InfoPendaftaranPage() {
             ))}
           </div>
         </InfoSection>
-      </div>
 
+      </div>
     </div>
   );
 }

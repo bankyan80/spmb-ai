@@ -13,90 +13,43 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const defaultSchools = [
-  {
-    namaSekolah: 'SDN 1 Lemahabang',
-    npsn: '20100011',
-    jenjang: 'SD',
-    alamat: 'Jl. Merdeka No. 10, Lemahabang',
-    desa: 'Lemahabang',
-    kecamatan: 'Lemahabang',
-    latitude: -6.3617,
-    longitude: 106.9086,
-    kuota: 120,
-    sisaKuota: 45,
-    statusAktif: true,
-  },
-  {
-    namaSekolah: 'SDN 2 Lemahabang',
-    npsn: '20100012',
-    jenjang: 'SD',
-    alamat: 'Jl. Pendidikan No. 5, Lemahabang',
-    desa: 'Lemahabang',
-    kecamatan: 'Lemahabang',
-    latitude: -6.3580,
-    longitude: 106.9120,
-    kuota: 100,
-    sisaKuota: 22,
-    statusAktif: true,
-  },
-  {
-    namaSekolah: 'SDN 1 Belawa',
-    npsn: '20100013',
-    jenjang: 'SD',
-    alamat: 'Jl. Belawa Raya No. 8, Belawa',
-    desa: 'Belawa',
-    kecamatan: 'Belawa',
-    latitude: -6.3450,
-    longitude: 106.8950,
-    kuota: 80,
-    sisaKuota: 38,
-    statusAktif: true,
-  },
-  {
-    namaSekolah: 'SDN 2 Belawa',
-    npsn: '20100014',
-    jenjang: 'SD',
-    alamat: 'Jl. Sukamaju No. 3, Belawa',
-    desa: 'Belawa',
-    kecamatan: 'Belawa',
-    latitude: -6.3420,
-    longitude: 106.9000,
-    kuota: 60,
-    sisaKuota: 0,
-    statusAktif: true,
-  },
-  {
-    namaSekolah: 'SDN 1 Cikarang',
-    npsn: '20100015',
-    jenjang: 'SD',
-    alamat: 'Jl. Cikarang Utama No. 12, Cikarang',
-    desa: 'Cikarang',
-    kecamatan: 'Cikarang',
-    latitude: -6.3100,
-    longitude: 107.1500,
-    kuota: 150,
-    sisaKuota: 78,
-    statusAktif: true,
-  },
-  {
-    namaSekolah: 'SDN 2 Cikarang',
-    npsn: '20100016',
-    jenjang: 'SD',
-    alamat: 'Jl. Industri No. 7, Cikarang',
-    desa: 'Cikarang',
-    kecamatan: 'Cikarang',
-    latitude: -6.3050,
-    longitude: 107.1550,
-    kuota: 90,
-    sisaKuota: 15,
-    statusAktif: true,
-  },
-];
+  { namaSekolah: 'SDN 1 Cipeujeuh Kulon', npsn: '20215183', desa: 'Cipeujeuh Kulon', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 1 Cipeujeuh Wetan', npsn: '20215184', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', kuota: 80 },
+  { namaSekolah: 'SDN 1 Lemahabang', npsn: '20215082', desa: 'Lemahabang', kecamatan: 'Lemahabang', kuota: 80 },
+  { namaSekolah: 'SDN 1 Lemahabang Kulon', npsn: '20215083', desa: 'Lemahabang Kulon', kecamatan: 'Lemahabang', kuota: 80 },
+  { namaSekolah: 'SDN 1 Belawa', npsn: '20215079', desa: 'Belawa', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 1 Asem', npsn: '20215065', desa: 'Asem', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 1 Sigong', npsn: '20215064', desa: 'Sigong', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 1 Sindang Laut', npsn: '20215041', desa: 'Sindang Laut', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 1 Picung Pugur', npsn: '20215042', desa: 'Picung Pugur', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 1 Tuk Karangsuwung', npsn: '20215509', desa: 'Tuk Karangsuwung', kecamatan: 'Lemahabang', kuota: 80 },
+  { namaSekolah: 'SDN 2 Cipeujeuh Kulon', npsn: '20215507', desa: 'Cipeujeuh Kulon', kecamatan: 'Lemahabang', kuota: 80 },
+  { namaSekolah: 'SDN 2 Cipeujeuh Wetan', npsn: '20215508', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 2 Lemahabang Kulon', npsn: '20215444', desa: 'Lemahabang Kulon', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 2 Belawa', npsn: '20215428', desa: 'Belawa', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 2 Asem', npsn: '20215414', desa: 'Asem', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 2 Sigong', npsn: '20215413', desa: 'Sigong', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 2 Picung Pugur', npsn: '20215392', desa: 'Picung Pugur', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 2 Tuk Karangsuwung', npsn: '20215354', desa: 'Tuk Karangsuwung', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 3 Cipeujeuh Wetan', npsn: '20215355', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 3 Lemahabang Kulon', npsn: '20215341', desa: 'Lemahabang Kulon', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SDN 4 Cipeujeuh Wetan', npsn: '20214695', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', kuota: 40 },
+  { namaSekolah: 'SD IT Al Irsyad Al Islamiyyah', npsn: '20215221', desa: 'Lemahabang', kecamatan: 'Lemahabang', kuota: 160 },
+].map(s => ({
+  ...s,
+  schoolId: `SCH-${s.npsn}`,
+  jenjang: 'SD',
+  alamat: `Jl. Raya ${s.desa}, Kec. Lemahabang`,
+  latitude: -6.8333,
+  longitude: 108.6333,
+  sisaKuota: s.kuota,
+  statusAktif: true,
+}));
 
 const defaultUsers = [
-  { email: 'admin@spmb.ai', nama: 'Admin SPMB', role: 'admin', schoolId: null, statusAktif: true },
-  { email: 'operator1@spmb.ai', nama: 'Operator SDN 1 Lemahabang', role: 'operator', statusAktif: true },
-  { email: 'operator2@spmb.ai', nama: 'Operator SDN 2 Belawa', role: 'operator', statusAktif: true },
+  { uid: 'admin-spmb', email: 'admin@spmb.ai', nama: 'Admin SPMB', role: 'admin', schoolId: null, statusAktif: true },
+  { uid: 'operator-sdn1-lmh', email: 'operator1@spmb.ai', nama: 'Operator SDN 1 Lemahabang', role: 'operator', statusAktif: true },
+  { uid: 'operator-sdn2-blw', email: 'operator2@spmb.ai', nama: 'Operator SDN 2 Belawa', role: 'operator', statusAktif: true },
 ];
 
 async function main() {
@@ -106,14 +59,11 @@ async function main() {
 
   if (isReset) {
     console.log('⚠️  Mereset data SPMB...');
-    await prisma.verificationLog.deleteMany();
-    await prisma.activityLog.deleteMany();
-    await prisma.parentAccess.deleteMany();
     await prisma.reRegistration.deleteMany();
     await prisma.document.deleteMany();
     await prisma.applicant.deleteMany();
     await prisma.announcement.deleteMany();
-    await prisma.settingsSPMB.deleteMany();
+    await prisma.chatAISettings.deleteMany();
     await prisma.user.deleteMany();
     await prisma.school.deleteMany();
     console.log('✅ Data SPMB direset');
@@ -150,11 +100,11 @@ async function main() {
     if (!existing) {
       let schoolId: string | null = null;
       if (user.email === 'operator1@spmb.ai') {
-        const sdn1 = schools.find(s => s.npsn === '20100011');
-        schoolId = sdn1?.id || null;
+        const sdn1 = schools.find(s => s.npsn === '20215082');
+        schoolId = sdn1?.schoolId || null;
       } else if (user.email === 'operator2@spmb.ai') {
-        const sdn2 = schools.find(s => s.npsn === '20100014');
-        schoolId = sdn2?.id || null;
+        const sdn2 = schools.find(s => s.npsn === '20215428');
+        schoolId = sdn2?.schoolId || null;
       }
       await prisma.user.create({
         data: { ...user, schoolId },
@@ -165,34 +115,13 @@ async function main() {
     }
   }
 
-  // Seed Settings
-  console.log('\n⚙️  Menambahkan pengaturan SPMB...');
-  const existingSettings = await prisma.settingsSPMB.findFirst();
-  if (!existingSettings) {
-    await prisma.settingsSPMB.create({
-      data: {
-        tahunAjaran: '2025/2026',
-        tanggalAcuanUsia: '2026-07-01',
-        usiaMinimalSD: 6,
-        usiaPrioritasSD: 7,
-        usiaPengecualianBulan: 6,
-        kuotaDomisili: 60,
-        kuotaAfirmasi: 15,
-        kuotaMutasi: 5,
-        statusPendaftaran: 'dibuka',
-      },
-    });
-    console.log('  ✅ Pengaturan SPMB dibuat');
-  } else {
-    console.log('  ⏭️  Pengaturan sudah ada');
-  }
-
   // Seed Announcements
   console.log('\n📢 Menambahkan pengumuman...');
   const existingAnnouncements = await prisma.announcement.count();
   if (existingAnnouncements === 0) {
     await prisma.announcement.create({
       data: {
+        announcementId: 'annc-pendaftaran-2025',
         title: 'Pembukaan Pendaftaran SPMB Tahun Ajaran 2025/2026',
         content: 'Diberitahukan kepada seluruh orang tua/wali calon siswa bahwa pendaftaran SPMB SD tahun ajaran 2025/2026 telah dibuka. Pendaftaran dilaksanakan secara online melalui aplikasi SPMB AI.',
         tahunAjaran: '2025/2026',
@@ -201,6 +130,7 @@ async function main() {
     });
     await prisma.announcement.create({
       data: {
+        announcementId: 'annc-jadwal-2025',
         title: 'Jadwal Seleksi SPMB 2025/2026',
         content: 'Pendaftaran: 1 Juni - 30 Juni 2026\nVerifikasi Berkas: 1 Juli - 15 Juli 2026\nPengumuman: 20 Juli 2026\nDaftar Ulang: 21 Juli - 31 Juli 2026',
         tahunAjaran: '2025/2026',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Baby, CheckCircle, XCircle, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Baby, CheckCircle, XCircle, AlertTriangle, ArrowRight, BookX } from 'lucide-react';
 import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
 import { calculateAge, formatDate } from '@/lib/business-logic';
@@ -185,7 +185,8 @@ export function CekUsiaPage() {
           <p className="font-medium mb-1">Informasi Acuan:</p>
           <p>Tanggal acuan usia: <strong>{formatDate(settings.tanggalAcuanUsia)}</strong></p>
           <p>Usia minimal SD: <strong>{settings.usiaMinimalSD} tahun</strong></p>
-          <p>Usia prioritas SD: <strong>{settings.usiaPrioritasSD} tahun</strong></p>
+          <p>Usia prioritas SD: <strong>{settings.usiaPrioritasSD} tahun (wajib diterima)</strong></p>
+          <p>Pengecualian: <strong>5 tahun 6 bulan</strong> (dengan rekomendasi psikolog)</p>
         </div>
 
         {/* Result Card */}
@@ -251,6 +252,36 @@ export function CekUsiaPage() {
                     </span>
                   );
                 })()}
+              </div>
+            </div>
+
+            {/* Extra Info for perlu_rekomendasi */}
+            {result.statusUsia === 'perlu_rekomendasi' && (
+              <div
+                className="mx-4 mb-3 rounded-lg p-3 text-xs flex items-start gap-2"
+                style={{ backgroundColor: '#FFF3E0', color: '#E65100', border: '1px solid #FFCC80' }}
+              >
+                <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">Diperlukan Surat Rekomendasi Psikolog</p>
+                  <p className="mt-0.5">
+                    Anak dengan usia di bawah 6 tahun namun minimal 5 tahun 6 bulan dapat mendaftar dengan melampirkan surat rekomendasi tertulis dari psikolog profesional (atau dewan guru sekolah jika psikolog tidak tersedia).
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Dilarang Calistung Info */}
+            <div
+              className="mx-4 mb-3 rounded-lg p-3 text-xs flex items-start gap-2"
+              style={{ backgroundColor: '#FFEBEE', color: '#C62828', border: '1px solid #EF9A9A' }}
+            >
+              <BookX className="size-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium">Dilarang Tes Calistung</p>
+                <p className="mt-0.5">
+                  Sesuai regulasi Kemendikdasmen, sekolah dilarang keras mengadakan tes membaca, menulis, dan berhitung sebagai syarat masuk SD.
+                </p>
               </div>
             </div>
 

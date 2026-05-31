@@ -220,6 +220,25 @@ export function CekDomisiliPage() {
           </div>
         )}
 
+        {/* KK Info */}
+        <div
+          className="rounded-xl p-3 text-xs"
+          style={{ backgroundColor: '#FFF3E0', color: '#E65100', border: '1px solid #FFCC80' }}
+        >
+          <div className="flex items-start gap-2">
+            <AlertCircle className="size-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Syarat KK Jalur Domisili/Zonasi</p>
+              <p className="mt-0.5">
+                Kartu Keluarga (KK) harus diterbitkan <strong>paling singkat 1 tahun</strong> sebelum tanggal pendaftaran dibuka. Pastikan data KK sinkron dengan akta kelahiran untuk menghindari penolakan otomatis oleh sistem.
+              </p>
+              <p className="mt-1">
+                Jika kuota zonasi penuh, seleksi diurutkan dari <strong>usia tertua ke usia termuda</strong> di dalam zona.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Loading State */}
         {isSearching && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
