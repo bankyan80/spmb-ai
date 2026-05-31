@@ -10,16 +10,16 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SPMB AI - Asisten Pendaftaran Sekolah",
-  description: "Aplikasi Chat SPMB AI berbasis Android untuk membantu orang tua/wali calon siswa jenjang SD dalam proses Seleksi Penerimaan Murid Baru.",
-  keywords: ["SPMB", "Pendaftaran Sekolah", "SD", "AI", "Seleksi Penerimaan Murid Baru"],
-  authors: [{ name: "SPMB AI Team" }],
+  title: "SPMB SD 2026/2027 - Seleksi Penerimaan Murid Baru",
+  description: "Aplikasi SPMB SD untuk membantu orang tua/wali calon siswa jenjang SD dalam proses Seleksi Penerimaan Murid Baru Tahun Ajaran 2026/2027.",
+  keywords: ["SPMB", "Pendaftaran Sekolah", "SD", "Seleksi Penerimaan Murid Baru", "2026/2027"],
+  authors: [{ name: "SPMB SD 2026/2027" }],
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "SPMB AI - Asisten Pendaftaran Sekolah",
-    description: "Chat AI untuk membantu proses pendaftaran sekolah dasar",
+    title: "SPMB SD 2026/2027 - Seleksi Penerimaan Murid Baru",
+    description: "Sistem Seleksi Penerimaan Murid Baru SD Tahun Ajaran 2026/2027",
     type: "website",
   },
 };

@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * SPMB AI - Seed Database Lembaga PAUD (TK/PAUD/KB/RA)
+ * SPMB SD 2026/2027 - Seed Database Lembaga PAUD (TK/PAUD/KB/RA)
  *
  * Penggunaan:
  *   npx tsx scripts/seed-lembaga.ts                    # Seed semua data default

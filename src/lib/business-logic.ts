@@ -1,10 +1,12 @@
-// SPMB AI - Business Logic Functions
+// SPMB SD 2026/2027 - Business Logic Functions
 
 import { AgeCheckResult, SchoolDistance, School } from './types';
 
 export function calculateAge(
   birthDate: string,
-  referenceDate: string
+  referenceDate: string,
+  usiaMinimalSD: number = 6,
+  usiaPrioritasSD: number = 7,
 ): AgeCheckResult {
   const birth = new Date(birthDate);
   const reference = new Date(referenceDate);
@@ -23,9 +25,6 @@ export function calculateAge(
     tahun--;
     bulan += 12;
   }
-
-  const usiaMinimalSD = 6;
-  const usiaPrioritasSD = 7;
 
   let statusUsia: AgeCheckResult['statusUsia'];
   let pesan: string;

@@ -1,4 +1,4 @@
-// SPMB AI - Zustand Store
+// SPMB SD 2026/2027 - Zustand Store
 
 import { create } from 'zustand';
 import { AppPage, UserRole, User, Applicant, ChatMessage, ParentAccess, ChatAISettings, ChatStatusIndicator } from './types';
@@ -31,12 +31,15 @@ interface SpmbState {
   currentUser: User | null;
   parentAccess: ParentAccess | null;
   isAuthenticated: boolean;
+  authToken: string | null;
+  setAuthToken: (token: string | null) => void;
 
   // Data
   schools: School[];
   applicants: Applicant[];
   settings: SettingsSPMB;
   announcements: Announcement[];
+  users: User[];
   selectedApplicant: Applicant | null;
 
   // Chat
@@ -116,7 +119,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
     })),
   goBack: () =>
     set((state) => ({
-      currentPage: state.previousPage || 'chat-ai',
+      currentPage: state.previousPage || 'beranda',
       previousPage: null,
     })),
 
@@ -124,12 +127,15 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   currentUser: null,
   parentAccess: null,
   isAuthenticated: false,
+  authToken: null,
+  setAuthToken: (token) => set({ authToken: token }),
 
   // Data
   schools: mockSchools,
   applicants: mockApplicants,
   settings: mockSettings,
   announcements: mockAnnouncements,
+  users: mockUsers,
   selectedApplicant: null,
 
   // Chat
@@ -168,10 +174,11 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
     );
     if (user) {
       set({ currentUser: user, isAuthenticated: true });
-      if (user.role === 'operator') {
+      if (user.mustChangePassword) {
+        get().navigateTo('ubah-password');
+      } else if (user.role === 'operator') {
         get().navigateTo('operator-applicants');
       } else {
-        // admin
         get().navigateTo('admin-dashboard');
       }
       return true;
@@ -216,7 +223,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   verifyOtp: (_otp) => {
     // Simple OTP verification - always succeeds for demo
     set({ isAuthenticated: true });
-    get().navigateTo('chat-ai');
+    get().navigateTo('beranda');
     return true;
   },
 
@@ -226,10 +233,22 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
       parentAccess: null,
       isAuthenticated: false,
     });
-    get().navigateTo('chat-ai');
+    get().navigateTo('splash');
   },
 
   setParentAccess: (data) => set({ parentAccess: data }),
+
+  clearMustChangePassword: () => {
+    const user = get().currentUser;
+    if (user) {
+      set({ currentUser: { ...user, mustChangePassword: false } });
+      if (user.role === 'operator') {
+        get().navigateTo('operator-applicants');
+      } else {
+        get().navigateTo('admin-dashboard');
+      }
+    }
+  },
 
   // Applicant actions
   addApplicant: (applicant) =>
@@ -367,8 +386,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
 
   addUser: (user) =>
     set((state) => ({
-      // @ts-ignore
-      users: [...(state as any).users, user],
+      users: [...state.users, user],
     })),
 
   // Re-registration

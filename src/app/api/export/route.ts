@@ -1,11 +1,13 @@
-// SPMB AI - Export Excel API Route
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuth, unauthorized } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await verifyAuth(req);
+    if (!user) return unauthorized();
+
     const { applicants, schoolName } = await req.json();
 
-    // Generate CSV content (simplified Excel export)
     const headers = [
       'No',
       'Nomor Pendaftaran',
@@ -30,17 +32,17 @@ export async function POST(req: NextRequest) {
       'Nama Verifikator',
     ];
 
-    const rows = applicants.map((a: any, i: number) => {
+    const rows = (applicants || []).map((a: Record<string, unknown>, i: number) => {
       const age = a.tanggalLahir
         ? Math.floor(
-            (Date.now() - new Date(a.tanggalLahir).getTime()) /
+            (Date.now() - new Date(a.tanggalLahir as string).getTime()) /
               (365.25 * 24 * 60 * 60 * 1000)
           )
         : '-';
       return [
         i + 1,
         a.nomorPendaftaran,
-        a.createdAt ? new Date(a.createdAt).toLocaleDateString('id-ID') : '',
+        a.createdAt ? new Date(a.createdAt as string).toLocaleDateString('id-ID') : '',
         a.nik,
         a.nisn || '-',
         a.namaSiswa,
@@ -57,21 +59,26 @@ export async function POST(req: NextRequest) {
         a.statusBerkas,
         a.statusPendaftaran,
         a.catatanOperator || '',
-        a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('id-ID') : '',
+        a.updatedAt ? new Date(a.updatedAt as string).toLocaleDateString('id-ID') : '',
         '-',
       ];
     });
 
-    // Create CSV
+    function sanitizeCsvCell(value: unknown): string {
+      const str = String(value ?? '');
+      const escaped = str.replace(/"/g, '""');
+      return /^[=+\-@]/.test(escaped) ? `"'${escaped}"` : `"${escaped}"`;
+    }
+
     const csvContent = [
       headers.join(','),
-      ...rows.map((row: any[]) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ...rows.map((row: unknown[]) =>
+        row.map((cell) => sanitizeCsvCell(cell)).join(',')
       ),
     ].join('\n');
 
     const filename = schoolName
-      ? `pendaftar-spmb-${schoolName.toLowerCase().replace(/\s+/g, '-')}.csv`
+      ? `pendaftar-spmb-${(schoolName as string).toLowerCase().replace(/\s+/g, '-')}.csv`
       : 'pendaftar-spmb-semua-sekolah.csv';
 
     return new NextResponse(csvContent, {
@@ -80,7 +87,7 @@ export async function POST(req: NextRequest) {
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Export error:', error);
     return NextResponse.json({ error: 'Export gagal' }, { status: 500 });
   }

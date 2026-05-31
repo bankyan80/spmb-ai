@@ -1,198 +1,151 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { siswaTKTable } from '@/lib/sheet-config';
+import { lulusanTKPaudKb, LulusanTK } from '@/lib/portal-dinas-data';
 
-// GET /api/siswa-tk - Query siswa TK/PAUD/KB
+function mapPortalToSiswaList(): Record<string, unknown>[] {
+  return lulusanTKPaudKb.map((s) => ({
+    id: `portal-${s.nik}`,
+    nik: s.nik,
+    nisn: s.nisn,
+    namaSiswa: s.nama,
+    tempatLahir: s.tempatLahir,
+    tanggalLahir: s.tanggalLahir,
+    jenisKelamin: s.jenisKelamin,
+    agama: s.agama,
+    alamat: s.alamat,
+    desa: s.desa,
+    kecamatan: s.kecamatan,
+    namaAyah: s.namaAyah,
+    nikAyah: s.nikAyah,
+    namaIbu: s.namaIbu,
+    nikIbu: s.nikIbu,
+    lembagaPaudId: s.jenjang ? `${s.jenjang}-${s.npsn}` : '',
+    statusAktif: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }));
+}
+
+async function getAllSiswa(): Promise<Record<string, unknown>[]> {
+  try {
+    return await siswaTKTable.findAll() as Record<string, unknown>[];
+  } catch {
+    return mapPortalToSiswaList();
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-
-    // Pagination
+    const lembagaPaudId = searchParams.get('lembagaPaudId');
+    const kecamatan = searchParams.get('kecamatan');
+    const keyword = searchParams.get('keyword');
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const skip = (page - 1) * limit;
+    const limit = parseInt(searchParams.get('limit') || '100');
+    const stats = searchParams.get('stats') === 'true';
 
-    // Filters
-    const lembagaPaudId = searchParams.get('lembagaPaudId') || undefined;
-    const npsn = searchParams.get('npsn') || undefined;
-    const kecamatan = searchParams.get('kecamatan') || undefined;
-    const desa = searchParams.get('desa') || undefined;
-    const jenisLembaga = searchParams.get('jenisLembaga') || undefined;
-    const namaSiswa = searchParams.get('namaSiswa') || undefined;
-    const nik = searchParams.get('nik') || undefined;
-    const kelas = searchParams.get('kelas') || undefined;
-    const tahunAjaran = searchParams.get('tahunAjaran') || undefined;
-    const statusAktif = searchParams.get('statusAktif');
+    let data = await getAllSiswa();
 
-    // Build where clause
-    const where: any = {};
-
-    if (lembagaPaudId) {
-      where.lembagaPaudId = lembagaPaudId;
+    if (lembagaPaudId) data = data.filter((r) => r.lembagaPaudId === lembagaPaudId);
+    if (kecamatan) data = data.filter((r) => r.kecamatan === kecamatan);
+    if (keyword) {
+      const kw = keyword.toLowerCase();
+      data = data.filter(
+        (r) =>
+          (r.namaSiswa && String(r.namaSiswa).toLowerCase().includes(kw)) ||
+          (r.nik && String(r.nik).includes(kw)) ||
+          (r.nisn && String(r.nisn).includes(kw)),
+      );
     }
 
-    if (npsn || kecamatan || desa || jenisLembaga) {
-      where.lembagaPaud = {};
-      if (npsn) where.lembagaPaud.npsn = npsn;
-      if (kecamatan) where.lembagaPaud.kecamatan = kecamatan;
-      if (desa) where.lembagaPaud.desa = desa;
-      if (jenisLembaga) where.lembagaPaud.jenisLembaga = jenisLembaga;
-    }
+    if (stats) {
+      const totalSiswaAktif = data.filter((r) => r.statusAktif).length;
+      const lembagaIds = new Set(data.map((r) => r.lembagaPaudId));
+      const perKecamatan: Record<string, number> = {};
+      data.forEach((r) => {
+        const k = (r.kecamatan as string) || 'unknown';
+        perKecamatan[k] = (perKecamatan[k] || 0) + 1;
+      });
 
-    if (namaSiswa) {
-      where.namaSiswa = { contains: namaSiswa };
-    }
+      const allLembaga = await getAllLembaga();
+      const perJenisLembaga: Record<string, number> = {};
+      allLembaga.forEach((l) => {
+        const j = (l.jenisLembaga as string) || 'unknown';
+        perJenisLembaga[j] = (perJenisLembaga[j] || 0) + 1;
+      });
 
-    if (nik) {
-      where.nik = nik;
-    }
-
-    // Note: rombel is used instead of kelas in the schema
-    if (kelas) {
-      where.rombel = kelas;
-    }
-
-    if (tahunAjaran) {
-      where.tahunAjaran = tahunAjaran;
-    }
-
-    if (statusAktif !== null && statusAktif !== undefined && statusAktif !== '') {
-      where.statusAktif = statusAktif === 'true';
-    }
-
-    // Query
-    const [siswa, total] = await Promise.all([
-      db.siswaTK.findMany({
-        where,
-        include: {
-          lembagaPaud: {
-            select: {
-              id: true,
-              namaLembaga: true,
-              npsn: true,
-              jenisLembaga: true,
-              desa: true,
-              kecamatan: true,
-            },
-          },
+      return NextResponse.json({
+        success: true,
+        data: {
+          totalSiswaAktif,
+          totalLembaga: lembagaIds.size,
+          perKecamatan: Array.from(perKecamatan.entries()).map(([kec, jumlah]) => ({ kecamatan: kec, jumlah })),
+          perJenisLembaga: Array.from(perJenisLembaga.entries()).map(([jenis, jumlah]) => ({ jenisLembaga: jenis, jumlah })),
         },
-        orderBy: { namaSiswa: 'asc' },
-        skip,
-        take: limit,
-      }),
-      db.siswaTK.count({ where }),
-    ]);
+      });
+    }
 
-    // Stats summary
-    const stats = await db.siswaTK.aggregate({
-      where: { statusAktif: true },
-      _count: true,
-    });
-
-    const lembagaCount = await db.lembagaPaud.count({
-      where: { statusAktif: true },
-    });
-
-    // Siswa per kecamatan
-    const perKecamatan = await db.siswaTK.groupBy({
-      by: ['kecamatan'],
-      where: { statusAktif: true, kecamatan: { not: null } },
-      _count: true,
-    });
-
-    // Siswa per jenis lembaga - use raw query for SQLite since groupBy doesn't support relation counts
-    const perJenisLembaga = await db.$queryRaw<
-      { jenisLembaga: string; jumlah: number }[]
-    >`
-      SELECT lp.jenisLembaga, COUNT(st.id) as jumlah
-      FROM LembagaPaud lp
-      LEFT JOIN SiswaTK st ON st.lembagaPaudId = lp.id AND st.statusAktif = 1
-      WHERE lp.statusAktif = 1
-      GROUP BY lp.jenisLembaga
-    `;
+    const total = data.length;
+    const paginated = data.slice((page - 1) * limit, page * limit);
 
     return NextResponse.json({
       success: true,
-      data: siswa,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-      stats: {
-        totalSiswaAktif: stats._count,
-        totalLembaga: lembagaCount,
-        perKecamatan: perKecamatan.map(item => ({
-          kecamatan: item.kecamatan,
-          jumlah: item._count,
-        })),
-        perJenisLembaga: perJenisLembaga.map(item => ({
-          jenisLembaga: item.jenisLembaga,
-          jumlah: Number(item.jumlah),
-        })),
-      },
+      data: paginated,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
-
-  } catch (error: any) {
-    console.error('Error fetching siswa TK:', error);
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
-      { status: 500 }
+      { success: false, error: error instanceof Error ? error.message : 'Gagal mengambil data siswa' },
+      { status: 500 },
     );
   }
 }
 
-// POST /api/siswa-tk - Create single siswa
+async function getAllLembaga(): Promise<Record<string, unknown>[]> {
+  try {
+    const { lembagaPaudTable } = await import('@/lib/sheet-config');
+    return await lembagaPaudTable.findAll() as Record<string, unknown>[];
+  } catch {
+    // Generate from portal data
+    const seen = new Set<string>();
+    const result: Record<string, unknown>[] = [];
+    lulusanTKPaudKb.forEach((s) => {
+      const key = `${s.jenjang}-${s.npsn}`;
+      if (!seen.has(key) && s.sekolahAsal) {
+        seen.add(key);
+        result.push({
+          id: key,
+          nama: s.sekolahAsal,
+          jenisLembaga: s.jenjang,
+          npsn: s.npsn,
+        });
+      }
+    });
+    return result;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const now = new Date().toISOString();
 
-    const siswa = await db.siswaTK.create({
-      data: {
-        lembagaPaudId: body.lembagaPaudId,
-        nipd: body.nipd || null,
-        nisn: body.nisn || null,
-        namaSiswa: body.namaSiswa,
-        nik: body.nik || null,
-        tempatLahir: body.tempatLahir || null,
-        tanggalLahir: body.tanggalLahir ? new Date(body.tanggalLahir) : null,
-        jenisKelamin: body.jenisKelamin || null,
-        agama: body.agama || null,
-        alamat: body.alamat || null,
-        rt: body.rt || null,
-        rw: body.rw || null,
-        kelurahan: body.kelurahan || body.desa || null,
-        kecamatan: body.kecamatan || null,
-        namaAyah: body.namaAyah || null,
-        nikAyah: body.nikAyah || null,
-        pekerjaanAyah: body.pekerjaanAyah || null,
-        namaIbu: body.namaIbu || null,
-        nikIbu: body.nikIbu || null,
-        pekerjaanIbu: body.pekerjaanIbu || null,
-        hp: body.hp || body.noHpOrtu || null,
-        tahunAjaran: body.tahunAjaran || null,
-        rombel: body.rombel || body.kelas || null,
-        tahunMasuk: body.tahunMasuk || null,
-        catatan: body.catatan || null,
-      },
-      include: {
-        lembagaPaud: {
-          select: {
-            namaLembaga: true,
-            npsn: true,
-            jenisLembaga: true,
-          },
-        },
-      },
-    });
+    const record: Record<string, unknown> = {
+      id: body.id || `siswa-${Date.now()}`,
+      lembagaPaudId: body.lembagaPaudId || '',
+      namaSiswa: body.namaSiswa || '',
+      ...body,
+      statusAktif: body.statusAktif ?? true,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-    return NextResponse.json({ success: true, data: siswa }, { status: 201 });
-
-  } catch (error: any) {
-    console.error('Error creating siswa TK:', error);
+    await siswaTKTable.create(record);
+    return NextResponse.json({ success: true, data: record }, { status: 201 });
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
-      { status: 500 }
+      { success: false, error: error instanceof Error ? error.message : 'Gagal menyimpan data siswa' },
+      { status: 400 },
     );
   }
 }

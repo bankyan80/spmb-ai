@@ -85,7 +85,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <LayoutDashboard className="size-5 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-base font-bold text-white truncate">SPMB AI</h1>
+            <h1 className="text-base font-bold text-white truncate">SPMB SD 2026/2027</h1>
             <p className="text-xs text-white/60">Admin Kecamatan</p>
           </div>
         </div>

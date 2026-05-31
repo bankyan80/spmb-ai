@@ -59,7 +59,7 @@ function getStatusStepIndex(status: string): number {
 }
 
 export function StatusDaftarPage() {
-  const { navigateTo, applicants } = useSpmbStore();
+  const { navigateTo, goBack, applicants } = useSpmbStore();
 
   const [searchType, setSearchType] = useState<SearchType>('noreg');
   const [searchValue, setSearchValue] = useState('');
@@ -105,7 +105,7 @@ export function StatusDaftarPage() {
       <SpmbHeader
         title="Status Pendaftaran"
         showBack
-        onBack={() => navigateTo('chat-ai')}
+        onBack={() => goBack()}
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-4 space-y-4">

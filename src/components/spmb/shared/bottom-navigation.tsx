@@ -12,7 +12,7 @@ interface BottomNavigationProps {
 
 const tabs: { id: BottomTab; label: string; icon: React.ElementType }[] = [
   { id: 'beranda', label: 'Beranda', icon: Home },
-  { id: 'chat-ai', label: 'Chat AI', icon: MessageSquare },
+  { id: 'chat-ai', label: 'Info AI', icon: MessageSquare },
   { id: 'daftar', label: 'Daftar', icon: FileText },
   { id: 'status', label: 'Status', icon: ClipboardCheck },
   { id: 'bantuan', label: 'Bantuan', icon: HelpCircle },

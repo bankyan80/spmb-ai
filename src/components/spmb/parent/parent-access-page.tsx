@@ -49,7 +49,7 @@ export function ParentAccessPage() {
 
     const success = loginParent(identifier.trim(), activeTab);
     if (success) {
-      navigateTo('chat-ai');
+      navigateTo('beranda');
     } else {
       setError('Data tidak ditemukan. Periksa kembali input Anda.');
     }

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import type { ChatAISettings } from '@/lib/types';
 
-const DEFAULT_SYSTEM_PROMPT = `Kamu adalah Chat SPMB AI berbasis Android yang menggunakan model Gemini 2.0 Flash.
+const DEFAULT_SYSTEM_PROMPT = `Kamu adalah asisten Chat SPMB SD 2026/2027 yang menggunakan model Gemini 2.0 Flash.
 
 Sebelum menjawab, analisa maksud pertanyaan pengguna terlebih dahulu.
 

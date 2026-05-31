@@ -194,8 +194,6 @@ export function RegistrationPage() {
               ['jenisKelamin', d.jenisKelamin],
               ['agama', d.agama],
               ['alamat', d.alamat],
-              ['rt', d.rt],
-              ['rw', d.rw],
               ['desa', d.desa || d.kelurahan],
               ['kecamatan', d.kecamatan],
               ['namaAyah', d.namaAyah],
@@ -359,7 +357,7 @@ export function RegistrationPage() {
 
   // Calculate age from tanggalLahir
   const ageResult = formData.tanggalLahir
-    ? calculateAge(formData.tanggalLahir, settings.tanggalAcuanUsia)
+    ? calculateAge(formData.tanggalLahir, settings.tanggalAcuanUsia, settings.usiaMinimalSD, settings.usiaPrioritasSD)
     : null;
 
   // Render stepper
@@ -1296,7 +1294,7 @@ export function RegistrationPage() {
           } else {
             resetRegistration();
             setSubmitted(false);
-            navigateTo('chat-ai');
+            navigateTo('beranda');
           }
         }}
       />

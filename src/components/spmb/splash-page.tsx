@@ -10,7 +10,7 @@ export function SplashPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigateTo('chat-ai');
+      navigateTo('pilihan-akses');
     }, 2500);
     return () => clearTimeout(timer);
   }, [navigateTo]);
@@ -50,7 +50,7 @@ export function SplashPage() {
           backgroundClip: 'text',
         }}
       >
-        SPMB AI
+        SPMB SD 2026/2027
       </motion.h1>
 
       {/* Subtitle */}
@@ -61,7 +61,7 @@ export function SplashPage() {
         className="text-base font-medium"
         style={{ color: '#6B7280' }}
       >
-        Asisten Pendaftaran Sekolah
+        Seleksi Penerimaan Murid Baru
       </motion.p>
 
       {/* Decorative school SVG illustration */}

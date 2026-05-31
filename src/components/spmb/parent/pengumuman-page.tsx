@@ -22,20 +22,20 @@ import type { Applicant } from '@/lib/types';
 
 // Confetti particle component
 function ConfettiEffect() {
-  const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number; size: number }>>([]);
-
-  useEffect(() => {
+  const [particles] = useState<Array<{ id: number; x: number; y: number; color: string; delay: number; size: number; rotate: number; duration: number; isRound: boolean }>>(() => {
     const colors = ['#43A047', '#1565C0', '#F59E0B', '#EF4444', '#009688', '#9C27B0', '#FF5722'];
-    const newParticles = Array.from({ length: 40 }, (_, i) => ({
+    return Array.from({ length: 40 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: -10 - Math.random() * 20,
       color: colors[Math.floor(Math.random() * colors.length)],
       delay: Math.random() * 1,
       size: 4 + Math.random() * 8,
+      rotate: 360 + Math.random() * 360,
+      duration: 2 + Math.random() * 2,
+      isRound: Math.random() > 0.5,
     }));
-    setParticles(newParticles);
-  }, []);
+  });
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -45,11 +45,11 @@ function ConfettiEffect() {
           initial={{ x: `${p.x}%`, y: `${p.y}%`, rotate: 0, opacity: 1 }}
           animate={{
             y: '110%',
-            rotate: 360 + Math.random() * 360,
+            rotate: p.rotate,
             opacity: [1, 1, 0],
           }}
           transition={{
-            duration: 2 + Math.random() * 2,
+            duration: p.duration,
             delay: p.delay,
             ease: 'easeIn',
           }}
@@ -58,7 +58,7 @@ function ConfettiEffect() {
             width: p.size,
             height: p.size,
             backgroundColor: p.color,
-            borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+            borderRadius: p.isRound ? '50%' : '2px',
           }}
         />
       ))}
@@ -104,7 +104,7 @@ function getResultConfig(hasil: HasilPengumuman) {
 }
 
 export function PengumumanPage() {
-  const { navigateTo, applicants } = useSpmbStore();
+  const { navigateTo, goBack, applicants } = useSpmbStore();
 
   const [nomorRegistrasi, setNomorRegistrasi] = useState('');
   const [searchResult, setSearchResult] = useState<Applicant | null>(null);
@@ -156,7 +156,7 @@ export function PengumumanPage() {
       <SpmbHeader
         title="Pengumuman"
         showBack
-        onBack={() => navigateTo('chat-ai')}
+        onBack={() => goBack()}
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-4 space-y-4">

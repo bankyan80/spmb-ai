@@ -3,6 +3,8 @@
 import React from 'react';
 import { useSpmbStore } from '@/lib/store';
 import { SplashPage } from '@/components/spmb/splash-page';
+import { PilihanAksesPage } from '@/components/spmb/pilihan-akses-page';
+import { ParentHomePage } from '@/components/spmb/parent/parent-home-page';
 import { ChatAiPage } from '@/components/spmb/parent/chat-ai-page';
 import { InfoPendaftaranPage } from '@/components/spmb/parent/info-pendaftaran-page';
 import { CekUsiaPage } from '@/components/spmb/parent/cek-usia-page';
@@ -13,6 +15,7 @@ import { PengumumanPage } from '@/components/spmb/parent/pengumuman-page';
 import { DaftarUlangPage } from '@/components/spmb/parent/daftar-ulang-page';
 import { BantuanPage } from '@/components/spmb/parent/bantuan-page';
 import { PetugasLoginPage } from '@/components/spmb/operator/petugas-login-page';
+import { UbahPasswordPage } from '@/components/spmb/operator/ubah-password-page';
 import { OperatorApplicantsPage } from '@/components/spmb/operator/operator-applicants-page';
 import { ApplicantDetailPage } from '@/components/spmb/operator/applicant-detail-page';
 import { VerificationPage } from '@/components/spmb/operator/verification-page';
@@ -31,6 +34,7 @@ import { OperatorLayout } from '@/components/spmb/shared/operator-layout';
 
 // Parent/orang tua pages - mobile-only view
 const PARENT_PAGES = new Set([
+  'beranda',
   'chat-ai',
   'info-pendaftaran',
   'cek-usia',
@@ -77,6 +81,13 @@ export default function Home() {
       case 'splash':
         return <SplashPage />;
 
+      case 'pilihan-akses':
+        return <PilihanAksesPage />;
+
+      // Beranda
+      case 'beranda':
+        return <ParentHomePage />;
+
       // Parent pages
       case 'chat-ai':
         return <ChatAiPage />;
@@ -100,6 +111,8 @@ export default function Home() {
       // Login
       case 'petugas-login':
         return <PetugasLoginPage />;
+      case 'ubah-password':
+        return <UbahPasswordPage />;
 
       // Operator & Admin shared pages
       case 'operator-applicants':
@@ -148,7 +161,7 @@ export default function Home() {
   const useOperatorLayout = isOperatorUser && OPERATOR_PAGES.has(currentPage);
 
   // Parent & entry pages: mobile-only wrapper
-  if (isParentPage || currentPage === 'splash') {
+  if (isParentPage || currentPage === 'splash' || currentPage === 'pilihan-akses') {
     return (
       <main className="min-h-screen bg-[#F3F8FF] max-w-[480px] mx-auto shadow-xl">
         {renderPage()}

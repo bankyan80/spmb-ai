@@ -66,6 +66,7 @@ export function QuickMenuGrid({ onMenuClick }: QuickMenuGridProps) {
   const handleMenuClick = (item: QuickMenuItem) => {
     if (onMenuClick) {
       onMenuClick(item.id);
+      return; // Don't navigate — parent component handles the action
     }
     navigateTo(item.page);
   };

@@ -20,7 +20,7 @@ const MOCK_LAT = -6.36;
 const MOCK_LON = 106.91;
 
 export function CekDomisiliPage() {
-  const { navigateTo, schools, updateRegistrationData } = useSpmbStore();
+  const { navigateTo, goBack, schools, updateRegistrationData } = useSpmbStore();
 
   const [alamat, setAlamat] = useState('');
   const [desa, setDesa] = useState('');
@@ -87,7 +87,7 @@ export function CekDomisiliPage() {
       <SpmbHeader
         title="Cek Domisili"
         showBack
-        onBack={() => navigateTo('chat-ai')}
+        onBack={() => goBack()}
       />
 
       {/* Content */}

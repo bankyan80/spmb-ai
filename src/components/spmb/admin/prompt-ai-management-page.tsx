@@ -56,7 +56,7 @@ export function PromptAiManagementPage() {
       'Kapan jadwal pendaftaran dibuka?':
         'Pendaftaran SPMB SD Tahun Ajaran 2026/2027 dibuka mulai 15 Januari 2026 sampai 31 Januari 2026. Jangan sampai terlewat ya, Bapak/Ibu! 📅',
       'Bagaimana cara cek status pendaftaran?':
-        'Untuk cek status pendaftaran, Anda bisa:\n1. Login melalui aplikasi SPMB AI menggunakan No HP/NIK/Nomor Registrasi\n2. Pilih menu "Status Pendaftaran"\n3. Lihat status terkini pendaftaran anak Anda\n\nStatus akan diperbarui oleh operator setelah verifikasi berkas. 📋',
+        'Untuk cek status pendaftaran, Anda bisa:\n1. Login melalui aplikasi SPMB SD menggunakan No HP/NIK/Nomor Registrasi\n2. Pilih menu "Status Pendaftaran"\n3. Lihat status terkini pendaftaran anak Anda\n\nStatus akan diperbarui oleh operator setelah verifikasi berkas. 📋',
       'Berapa usia minimal untuk masuk SD?':
         'Usia minimal untuk masuk SD adalah 6 tahun pada tanggal acuan 1 Juli 2026. Usia prioritas diberikan untuk anak yang berusia 7 tahun ke atas. Jika anak Anda berusia kurang dari 6 tahun, diperlukan rekomendasi khusus. 🎒',
     };

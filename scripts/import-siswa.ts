@@ -1,6 +1,6 @@
 #!/usr/bin/env npx tsx
 /**
- * SPMB AI - CLI Import Siswa TK/PAUD/KB dari CSV / Google Sheet
+ * SPMB SD 2026/2027 - CLI Import Siswa TK/PAUD/KB dari CSV / Google Sheet
  *
  * Penggunaan:
  *   npx tsx scripts/import-siswa.ts --url <CSV_URL> --npsn <NPSN_LEMBAGA>
@@ -89,7 +89,7 @@ function parseArgs(): CliArgs {
 function showHelp(): void {
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
-║          SPMB AI - Import Siswa TK/PAUD/KB                  ║
+║     SPMB SD 2026/2027 - Import Siswa TK/PAUD/KB             ║
 ║          (CSV / Google Sheets)                              ║
 ╚══════════════════════════════════════════════════════════════╝
 

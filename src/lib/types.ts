@@ -1,7 +1,8 @@
-// SPMB AI - TypeScript Types
+// SPMB SD 2026/2027 - TypeScript Types
 
 export type AppPage =
   | 'splash'
+  | 'beranda'
   | 'chat-ai'
   | 'info-pendaftaran'
   | 'cek-usia'
@@ -53,6 +54,7 @@ export interface User {
   schoolId: string;
   statusAktif: boolean;
   createdAt: string;
+  mustChangePassword?: boolean;
 }
 
 export interface ParentAccess {

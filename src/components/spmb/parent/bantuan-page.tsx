@@ -127,7 +127,7 @@ function FAQAccordionItem({
 }
 
 export function BantuanPage() {
-  const { navigateTo } = useSpmbStore();
+  const { navigateTo, goBack } = useSpmbStore();
 
   const [openFAQ, setOpenFAQ] = useState<number | null>(0);
 
@@ -140,7 +140,7 @@ export function BantuanPage() {
       <SpmbHeader
         title="Bantuan"
         showBack
-        onBack={() => navigateTo('chat-ai')}
+        onBack={() => goBack()}
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-4 space-y-4">
@@ -273,7 +273,7 @@ export function BantuanPage() {
         {/* App Info */}
         <div className="rounded-xl p-4 border text-center" style={{ backgroundColor: '#FFFFFF', borderColor: '#E5E7EB' }}>
           <p className="text-xs font-medium" style={{ color: '#6B7280' }}>
-            SPMB AI v1.0.0
+            SPMB SD 2026/2027 v1.0.0
           </p>
           <p className="text-[10px] mt-1" style={{ color: '#9CA3AF' }}>
             Sistem Penerimaan Murid Baru SD Tahun Ajaran 2026/2027

@@ -8,7 +8,7 @@ import { calculateAge, formatDate } from '@/lib/business-logic';
 import type { AgeCheckResult } from '@/lib/types';
 
 export function CekUsiaPage() {
-  const { navigateTo, settings } = useSpmbStore();
+  const { navigateTo, goBack, settings } = useSpmbStore();
 
   const [namaAnak, setNamaAnak] = useState('');
   const [tanggalLahir, setTanggalLahir] = useState('');
@@ -24,7 +24,7 @@ export function CekUsiaPage() {
     // Simulate a brief delay for UX
     setTimeout(() => {
       const referenceDate = settings.tanggalAcuanUsia;
-      const ageResult = calculateAge(tanggalLahir, referenceDate);
+      const ageResult = calculateAge(tanggalLahir, referenceDate, settings.usiaMinimalSD, settings.usiaPrioritasSD);
       ageResult.namaAnak = namaAnak.trim();
       setResult(ageResult);
       setIsCalculating(false);
@@ -68,7 +68,7 @@ export function CekUsiaPage() {
       <SpmbHeader
         title="Cek Usia Anak"
         showBack
-        onBack={() => navigateTo('chat-ai')}
+        onBack={() => goBack()}
       />
 
       {/* Content */}

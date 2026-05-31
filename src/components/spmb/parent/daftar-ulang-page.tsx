@@ -691,7 +691,7 @@ export function DaftarUlangPage() {
           if (step === 'form') {
             setStep('check');
           } else {
-            navigateTo('chat-ai');
+            navigateTo('beranda');
           }
         }}
       />

@@ -1,9 +1,9 @@
-// SPMB AI Chat API Route - Enhanced with Analysis, Google Search, and App Data
+// SPMB SD 2026/2027 Chat API Route - Enhanced with Analysis, Google Search, and App Data
 import { NextRequest, NextResponse } from 'next/server';
 import ZAI from 'z-ai-web-dev-sdk';
-import { db } from '@/lib/db';
+import { schoolsTable, chatAISettingsTable } from '@/lib/sheet-config';
 
-const DEFAULT_SYSTEM_PROMPT = `Kamu adalah Chat SPMB AI berbasis Android yang menggunakan model Gemini 2.0 Flash.
+const DEFAULT_SYSTEM_PROMPT = `Kamu adalah asisten Chat SPMB SD 2026/2027 yang menggunakan model Gemini 2.0 Flash.
 
 Sebelum menjawab, analisa maksud pertanyaan pengguna terlebih dahulu.
 
@@ -29,7 +29,7 @@ Jangan mengarang aturan SPMB.
 
 Jika menggunakan informasi dari Google, jelaskan bahwa informasi tersebut hanya referensi tambahan dan keputusan tetap mengikuti panitia SPMB.`;
 
-const ANALYSIS_PROMPT = `Kamu adalah sistem analisa pertanyaan untuk Chat SPMB AI.
+const ANALYSIS_PROMPT = `Kamu adalah sistem analisa pertanyaan untuk Chat SPMB SD 2026/2027.
 
 Tugas: Analisa pertanyaan pengguna dan tentukan kategori serta sumber jawaban terbaik.
 
@@ -50,10 +50,10 @@ Sumber jawaban:
 - gabungan: Pertanyaan yang membutuhkan data aplikasi + informasi tambahan dari Google
 
 ATURAN PENTING:
-1. Jika pertanyaan tentang data personal pendaftaran (status, nomor registrasi, dokumen, pengumuman pribadi, daftar ulang) → WAJIB data_aplikasi
-2. Jika pertanyaan tentang aturan resmi SPMB yang sudah diatur admin (jadwal, kuota, syarat usia, jalur, dokumen) → WAJIB data_aplikasi
-3. Jika pertanyaan umum (cara scan, cara buat PDF, penjelasan istilah, info pendidikan umum) → google_search
-4. Jika pertanyaan campuran (misal: syarat usia + penjelasan umum tentang pendidikan) → gabungan
+1. Jika pertanyaan tentang data personal pendaftaran (status, nomor registrasi, dokumen, pengumuman pribadi, daftar ulang) -> WAJIB data_aplikasi
+2. Jika pertanyaan tentang aturan resmi SPMB yang sudah diatur admin (jadwal, kuota, syarat usia, jalur, dokumen) -> WAJIB data_aplikasi
+3. Jika pertanyaan umum (cara scan, cara buat PDF, penjelasan istilah, info pendidikan umum) -> google_search
+4. Jika pertanyaan campuran (misal: syarat usia + penjelasan umum tentang pendidikan) -> gabungan
 
 Berikan output dalam format JSON saja (tanpa markdown):
 {
@@ -65,48 +65,16 @@ Berikan output dalam format JSON saja (tanpa markdown):
   "analisaSingkat": "penjelasan singkat mengapa kategori dan sumber ini dipilih"
 }`;
 
-interface AppDataContext {
-  settings: any;
-  schools: any[];
-  applicants: any[];
-  announcements: any[];
-}
-
 async function getChatSettings() {
   try {
-    let settings = await db.chatAISettings.findFirst();
-    if (!settings) {
-      settings = await db.chatAISettings.create({
-        data: {
-          modelAI: 'gemini-2.0-flash',
-          aktifkanGoogleSearch: true,
-          aktifkanSlowTyping: true,
-          kecepatanTyping: 'normal',
-          maksimalHasilGoogle: 5,
-          sumberUtama: 'data_aplikasi',
-          sumberTambahan: 'google_search',
-          systemPrompt: null,
-          pesanFallback: 'Maaf, saya tidak dapat memproses pertanyaan Anda saat ini. Silakan coba lagi atau hubungi panitia SPMB.',
-        },
-      });
-    }
-    return settings;
+    const all = await chatAISettingsTable.findAll();
+    return all[0] || null;
   } catch {
-    return {
-      modelAI: 'gemini-2.0-flash',
-      aktifkanGoogleSearch: true,
-      aktifkanSlowTyping: true,
-      kecepatanTyping: 'normal',
-      maksimalHasilGoogle: 5,
-      sumberUtama: 'data_aplikasi',
-      sumberTambahan: 'google_search',
-      systemPrompt: null,
-      pesanFallback: 'Maaf, saya tidak dapat memproses pertanyaan Anda saat ini.',
-    };
+    return null;
   }
 }
 
-async function analyzeQuestion(message: string, zai: any): Promise<{
+async function analyzeQuestion(message: string, zai: unknown): Promise<{
   kategori: string;
   sumberJawaban: string;
   menggunakanDataAplikasi: boolean;
@@ -114,24 +82,22 @@ async function analyzeQuestion(message: string, zai: any): Promise<{
   queryGoogle: string | null;
   analisaSingkat: string;
 }> {
+  const ZAIClient = zai as { chat: { completions: { create: (opts: Record<string, unknown>) => Promise<unknown> } } };
   try {
-    const completion = await zai.chat.completions.create({
+    const completion = await ZAIClient.chat.completions.create({
       messages: [
         { role: 'system', content: ANALYSIS_PROMPT },
         { role: 'user', content: message },
       ],
       temperature: 0.1,
       max_tokens: 300,
-    });
+    }) as { choices?: Array<{ message?: { content?: string } }> };
 
     const responseText = completion.choices?.[0]?.message?.content || '';
 
-    // Parse JSON from response (handle potential markdown code blocks)
     let jsonStr = responseText;
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      jsonStr = jsonMatch[0];
-    }
+    if (jsonMatch) jsonStr = jsonMatch[0];
 
     const analysis = JSON.parse(jsonStr);
     return {
@@ -142,9 +108,7 @@ async function analyzeQuestion(message: string, zai: any): Promise<{
       queryGoogle: analysis.queryGoogle || null,
       analisaSingkat: analysis.analisaSingkat || '',
     };
-  } catch (error: any) {
-    console.error('Analysis error, using fallback:', error.message);
-    // Fallback: simple keyword-based analysis
+  } catch {
     return fallbackAnalysis(message);
   }
 }
@@ -152,35 +116,27 @@ async function analyzeQuestion(message: string, zai: any): Promise<{
 function fallbackAnalysis(message: string) {
   const lower = message.toLowerCase();
   let kategori = 'umum';
-  let sumberJawaban: string = 'data_aplikasi';
+  let sumberJawaban = 'data_aplikasi';
   let menggunakanDataAplikasi = true;
   let menggunakanGoogleSearch = false;
   let queryGoogle: string | null = null;
 
   if (lower.includes('status') || lower.includes('nomor registrasi') || lower.includes('verifikasi')) {
     kategori = 'status_daftar';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('usia') || lower.includes('umur') || lower.includes('lahir')) {
     kategori = 'usia_anak';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('domisili') || lower.includes('sekolah terdekat') || lower.includes('lokasi')) {
     kategori = 'domisili';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('daftar') || lower.includes('pendaftaran') || lower.includes('mendaftar')) {
     kategori = 'pendaftaran';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('pengumuman') || lower.includes('hasil') || lower.includes('diterima')) {
     kategori = 'pengumuman';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('daftar ulang')) {
     kategori = 'daftar_ulang';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('info') || lower.includes('jadwal') || lower.includes('kuota') || lower.includes('syarat')) {
     kategori = 'info_spmb';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('keluhan') || lower.includes('masalah') || lower.includes('perbaikan') || lower.includes('salah')) {
     kategori = 'keluhan';
-    sumberJawaban = 'data_aplikasi';
   } else if (lower.includes('scan') || lower.includes('pdf') || lower.includes('cara') || lower.includes('istilah')) {
     kategori = 'umum';
     sumberJawaban = 'google_search';
@@ -194,57 +150,43 @@ function fallbackAnalysis(message: string) {
     queryGoogle = message;
   }
 
-  return {
-    kategori,
-    sumberJawaban,
-    menggunakanDataAplikasi,
-    menggunakanGoogleSearch,
-    queryGoogle,
-    analisaSingkat: `Analisa fallback: kategori ${kategori}, sumber ${sumberJawaban}`,
-  };
+  return { kategori, sumberJawaban, menggunakanDataAplikasi, menggunakanGoogleSearch, queryGoogle, analisaSingkat: `Analisa fallback: kategori ${kategori}, sumber ${sumberJawaban}` };
 }
 
-async function searchGoogle(query: string, maxResults: number, zai: any): Promise<string | null> {
+async function searchGoogle(query: string, maxResults: number, zai: unknown): Promise<string | null> {
+  const ZAIClient = zai as { functions: { invoke: (name: string, params: Record<string, unknown>) => Promise<unknown> } };
   try {
-    const searchResults = await zai.functions.invoke('web_search', {
-      query: query,
-      num: maxResults,
-    });
+    const searchResults = await ZAIClient.functions.invoke('web_search', { query, num: maxResults }) as Array<Record<string, unknown>> | null;
+    if (!searchResults || !Array.isArray(searchResults) || searchResults.length === 0) return null;
 
-    if (!searchResults || !Array.isArray(searchResults) || searchResults.length === 0) {
-      return null;
-    }
-
-    // Summarize search results
-    const summaries = searchResults.slice(0, maxResults).map((r: any, i: number) =>
+    return searchResults.slice(0, maxResults).map((r, i) =>
       `[${i + 1}] ${r.name || 'Sumber'}: ${r.snippet || ''} (${r.url || ''})`
     ).join('\n');
-
-    return summaries;
-  } catch (error: any) {
-    console.error('Google Search error:', error.message);
+  } catch {
     return null;
   }
 }
 
-async function saveAnalysisLog(analysis: any, jawabanAkhir: string, waktuAnalisa: number) {
+async function saveAnalysisLog(analysis: Record<string, unknown>, jawabanAkhir: string, _waktuAnalisa: number) {
   try {
-    await db.chatAnalysisLog.create({
-      data: {
-        pertanyaan: analysis.pertanyaan || '',
-        kategoriPertanyaan: analysis.kategori,
-        sumberJawaban: analysis.sumberJawaban,
-        menggunakanDataAplikasi: analysis.menggunakanDataAplikasi,
-        menggunakanGoogleSearch: analysis.menggunakanGoogleSearch,
-        queryGoogle: analysis.queryGoogle,
-        hasilRingkasanGoogle: analysis.hasilRingkasanGoogle,
-        jawabanAkhir: jawabanAkhir,
-        model: 'gemini-2.0-flash',
-        waktuAnalisa: waktuAnalisa,
-      },
+    const { chatAnalysisLogTable } = await import('@/lib/sheet-config');
+    await chatAnalysisLogTable.create({
+      id: `alog-${Date.now()}`,
+      parentId: null,
+      pertanyaan: (analysis.pertanyaan as string) || '',
+      kategoriPertanyaan: analysis.kategori as string,
+      sumberJawaban: analysis.sumberJawaban as string,
+      menggunakanDataAplikasi: !!analysis.menggunakanDataAplikasi,
+      menggunakanGoogleSearch: !!analysis.menggunakanGoogleSearch,
+      queryGoogle: (analysis.queryGoogle as string) || null,
+      hasilRingkasanGoogle: (analysis.hasilRingkasanGoogle as string) || null,
+      jawabanAkhir,
+      model: 'gemini-2.0-flash',
+      waktuAnalisa: _waktuAnalisa,
+      createdAt: new Date().toISOString(),
     });
-  } catch (error: any) {
-    console.error('Save analysis log error:', error.message);
+  } catch {
+    // non-critical
   }
 }
 
@@ -296,7 +238,19 @@ function getActionButtons(kategori: string) {
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
   try {
-    const { message, context } = await req.json();
+    const body = await req.json();
+    const { message } = body;
+
+    let appDataContext = '';
+    try {
+      const schools = await schoolsTable.findAll();
+      if (schools.length > 0) {
+        const names = schools.filter((s) => s.statusAktif).map((s) => s.namaSekolah).filter(Boolean);
+        appDataContext = `Sekolah tersedia: ${names.join(', ')}`;
+      }
+    } catch {
+      // context not critical
+    }
 
     if (!message?.trim()) {
       return NextResponse.json({
@@ -307,95 +261,63 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Get chat AI settings
     const settings = await getChatSettings();
-    const systemPrompt = settings.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+    const systemPrompt = (settings?.systemPrompt as string) || DEFAULT_SYSTEM_PROMPT;
 
     const zai = await ZAI.create();
 
-    // ============================================
-    // STEP 1: Analyze question
-    // ============================================
     const analysis = await analyzeQuestion(message, zai);
 
-    // ============================================
-    // STEP 2: Check internal app data
-    // ============================================
     let appDataInfo = '';
-    if (analysis.menggunakanDataAplikasi && context) {
-      appDataInfo = `\n\nInformasi data aplikasi yang tersedia:\n${context}`;
+    if (analysis.menggunakanDataAplikasi && appDataContext) {
+      appDataInfo = `\n\nInformasi data aplikasi yang tersedia:\n${appDataContext}`;
     }
 
-    // ============================================
-    // STEP 3: Google Search if needed
-    // ============================================
     let googleSearchInfo = '';
     let hasilRingkasanGoogle: string | null = null;
 
-    if (analysis.menggunakanGoogleSearch && analysis.queryGoogle && settings.aktifkanGoogleSearch) {
+    if (analysis.menggunakanGoogleSearch && analysis.queryGoogle && (settings?.aktifkanGoogleSearch as boolean) !== false) {
       try {
         const searchResult = await searchGoogle(
           analysis.queryGoogle,
-          settings.maksimalHasilGoogle,
-          zai
+          (settings?.maksimalHasilGoogle as number) || 5,
+          zai,
         );
-
         if (searchResult) {
           hasilRingkasanGoogle = searchResult;
           googleSearchInfo = `\n\nInformasi tambahan dari pencarian Google (ini hanya referensi, keputusan tetap mengikuti panitia SPMB):\n${searchResult}`;
         }
-      } catch (error: any) {
-        console.error('Google Search failed:', error.message);
+      } catch {
+        // search failed
       }
     }
 
-    // If Google Search is disabled but was needed
-    if (analysis.menggunakanGoogleSearch && !settings.aktifkanGoogleSearch) {
+    if (analysis.menggunakanGoogleSearch && (settings?.aktifkanGoogleSearch as boolean) === false) {
       googleSearchInfo = '\n\nCatatan: Pencarian Google tidak diaktifkan. Jawaban hanya berdasarkan data aplikasi dan pengetahuan umum. Jika membutuhkan kepastian, sarankan pengguna menghubungi panitia SPMB.';
     }
 
-    // ============================================
-    // STEP 4: Generate final answer
-    // ============================================
     const sourceInstruction = analysis.sumberJawaban === 'data_aplikasi'
       ? 'Jawab berdasarkan data aplikasi yang tersedia. Mulai dengan: "Baik Bapak/Ibu, saya cek dulu ya. Dari data SPMB yang tersedia di aplikasi, ketentuannya seperti berikut..."'
       : analysis.sumberJawaban === 'google_search'
-      ? 'Jawab berdasarkan informasi dari pencarian Google. Mulai dengan: "Baik Bapak/Ibu, saya bantu analisa. Karena informasi ini tidak tersedia lengkap di data aplikasi, saya akan menggunakan informasi tambahan dari pencarian Google, namun keputusan tetap mengikuti aturan resmi panitia SPMB."'
-      : 'Jawab berdasarkan data aplikasi sebagai sumber utama, dengan informasi tambahan dari Google. Jelaskan mana yang dari data aplikasi dan mana yang dari referensi tambahan.';
+        ? 'Jawab berdasarkan informasi dari pencarian Google. Mulai dengan: "Baik Bapak/Ibu, saya bantu analisa. Karena informasi ini tidak tersedia lengkap di data aplikasi, saya akan menggunakan informasi tambahan dari pencarian Google, namun keputusan tetap mengikuti aturan resmi panitia SPMB."'
+        : 'Jawab berdasarkan data aplikasi sebagai sumber utama, dengan informasi tambahan dari Google. Jelaskan mana yang dari data aplikasi dan mana yang dari referensi tambahan.';
 
     const finalPrompt = `${systemPrompt}\n\nInstruksi sumber jawaban: ${sourceInstruction}`;
 
     const completion = await zai.chat.completions.create({
       messages: [
-        {
-          role: 'system',
-          content: finalPrompt + appDataInfo + googleSearchInfo,
-        },
+        { role: 'system', content: finalPrompt + appDataInfo + googleSearchInfo },
         { role: 'user', content: message },
       ],
       temperature: 0.7,
       max_tokens: 800,
     });
 
-    const reply = completion.choices?.[0]?.message?.content || settings.pesanFallback;
+    const reply = (completion.choices?.[0]?.message?.content as string) || (settings?.pesanFallback as string) || 'Maaf, saya tidak dapat memproses pertanyaan Anda saat ini.';
 
-    // ============================================
-    // STEP 5: Save analysis log
-    // ============================================
     const waktuAnalisa = Date.now() - startTime;
-    await saveAnalysisLog(
-      {
-        pertanyaan: message,
-        ...analysis,
-        hasilRingkasanGoogle,
-      },
-      reply,
-      waktuAnalisa
-    );
+    await saveAnalysisLog({ pertanyaan: message, ...analysis, hasilRingkasanGoogle }, reply, waktuAnalisa);
 
-    // ============================================
-    // STEP 6: Return response
-    // ============================================
     return NextResponse.json({
       reply,
       kategori: analysis.kategori,
@@ -403,17 +325,16 @@ export async function POST(req: NextRequest) {
       menggunakanDataAplikasi: analysis.menggunakanDataAplikasi,
       menggunakanGoogleSearch: analysis.menggunakanGoogleSearch && !!hasilRingkasanGoogle,
       actionButtons: getActionButtons(analysis.kategori),
-      typingMode: settings.aktifkanSlowTyping ? 'slow' : 'instant',
-      typingSpeed: settings.kecepatanTyping,
+      typingMode: (settings?.aktifkanSlowTyping as boolean) !== false ? 'slow' : 'instant',
+      typingSpeed: (settings?.kecepatanTyping as string) || 'normal',
       analysisId: null,
-      model: settings.modelAI,
+      model: (settings?.modelAI as string) || 'gemini-2.0-flash',
     });
-  } catch (error: any) {
-    console.error('Chat API error:', error);
+  } catch {
     return NextResponse.json({
       reply: 'Maaf, layanan AI sedang tidak tersedia. Silakan gunakan menu cepat untuk mengakses layanan SPMB.',
       kategori: 'umum',
-      sumberJawaban: 'data_aplikasi',
+      sumberJabawan: 'data_aplikasi',
       actionButtons: getActionButtons('umum'),
       typingMode: 'slow',
       typingSpeed: 'normal',

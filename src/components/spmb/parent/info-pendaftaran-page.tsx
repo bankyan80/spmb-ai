@@ -50,7 +50,7 @@ function InfoSection({ icon, title, color, children }: InfoSectionProps) {
 }
 
 export function InfoPendaftaranPage() {
-  const { navigateTo } = useSpmbStore();
+  const { navigateTo, goBack } = useSpmbStore();
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#F3F8FF' }}>
@@ -58,7 +58,7 @@ export function InfoPendaftaranPage() {
       <SpmbHeader
         title="Info Pendaftaran"
         showBack
-        onBack={() => navigateTo('chat-ai')}
+        onBack={() => goBack()}
       />
 
       {/* Content */}

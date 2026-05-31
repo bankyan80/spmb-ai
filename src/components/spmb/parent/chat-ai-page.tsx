@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Trash2, MoreVertical, Badge, Shield, HelpCircle, School, SkipForward, Database, Globe, Blend } from 'lucide-react';
+import { Send, Trash2, MoreVertical, Badge, Shield, HelpCircle, School, SkipForward, Database, Globe, Blend, ArrowLeft } from 'lucide-react';
 import { useSpmbStore } from '@/lib/store';
 import { AiAvatar } from '@/components/spmb/shared/ai-avatar';
 import { QuickMenuGrid } from '@/components/spmb/shared/quick-menu-grid';
@@ -72,6 +72,7 @@ export function ChatAiPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const typingIntervalsRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const statusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -81,10 +82,11 @@ export function ChatAiPage() {
     scrollToBottom();
   }, [chatMessages, displayedContent, chatStatusIndicator]);
 
-  // Cleanup typing intervals on unmount
+  // Cleanup typing intervals and status timeout on unmount
   useEffect(() => {
     return () => {
       Object.values(typingIntervalsRef.current).forEach(clearInterval);
+      if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
     };
   }, []);
 
@@ -195,7 +197,7 @@ Daftar Sekolah: ${schools.map((s) => `${s.namaSekolah} (Kuota: ${s.kuota}, Sisa:
     setChatStatusIndicator('menganalisa');
 
     // Simulate analysis steps
-    setTimeout(() => {
+    statusTimeoutRef.current = setTimeout(() => {
       setChatStatusIndicator('mengecek_data');
     }, 800);
 
@@ -297,6 +299,14 @@ Daftar Sekolah: ${schools.map((s) => `${s.namaSekolah} (Kuota: ${s.kuota}, Sisa:
         }}
       >
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigateTo('beranda')}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label="Kembali ke Beranda"
+            title="Kembali ke Beranda"
+          >
+            <ArrowLeft className="size-5 text-white" />
+          </button>
           <div
             className="flex items-center justify-center size-8 rounded-lg"
             style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
@@ -304,8 +314,8 @@ Daftar Sekolah: ${schools.map((s) => `${s.namaSekolah} (Kuota: ${s.kuota}, Sisa:
             <School className="size-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-white truncate">SPMB AI</h1>
-            <p className="text-[10px] text-white/60">Gemini 2.0 Flash</p>
+            <h1 className="text-lg font-semibold text-white truncate">Tanya SPMB SD</h1>
+            <p className="text-[10px] text-white/60">Asisten Informasi SPMB</p>
           </div>
         </div>
 
@@ -600,7 +610,7 @@ Daftar Sekolah: ${schools.map((s) => `${s.namaSekolah} (Kuota: ${s.kuota}, Sisa:
                   <div className="size-2 rounded-full animate-bounce" style={{ backgroundColor: '#1565C0', animationDelay: '300ms' }} />
                 </div>
                 <span className="text-sm" style={{ color: '#6B7280' }}>
-                  SPMB AI sedang mengetik...
+                  SPMB SD sedang mengetik...
                 </span>
               </div>
             </div>

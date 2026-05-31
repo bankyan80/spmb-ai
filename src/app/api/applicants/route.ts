@@ -1,36 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { applicantsTable } from '@/lib/sheet-config';
+import { verifyAuth, unauthorized } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const schoolId = searchParams.get('schoolId') || undefined;
-    const status = searchParams.get('status') || undefined;
-    const jalur = searchParams.get('jalur') || undefined;
-    const keyword = searchParams.get('keyword') || undefined;
+    const schoolId = searchParams.get('schoolId');
+    const status = searchParams.get('status');
+    const jalur = searchParams.get('jalur');
+    const keyword = searchParams.get('keyword');
 
-    const where: any = {};
-    if (schoolId) where.schoolId = schoolId;
-    if (status) where.statusPendaftaran = status;
-    if (jalur) where.jalur = jalur;
+    let applicants = await applicantsTable.findAll();
+
+    if (schoolId) applicants = applicants.filter((a) => a.schoolId === schoolId);
+    if (status) applicants = applicants.filter((a) => a.statusPendaftaran === status);
+    if (jalur) applicants = applicants.filter((a) => a.jalur === jalur);
     if (keyword) {
-      where.OR = [
-        { namaSiswa: { contains: keyword } },
-        { nik: { contains: keyword } },
-        { nomorPendaftaran: { contains: keyword } },
-      ];
+      const kw = keyword.toLowerCase();
+      applicants = applicants.filter(
+        (a) =>
+          (a.namaSiswa && String(a.namaSiswa).toLowerCase().includes(kw)) ||
+          (a.nik && String(a.nik).includes(kw)) ||
+          (a.nomorPendaftaran && String(a.nomorPendaftaran).includes(kw)),
+      );
     }
 
-    const applicants = await db.applicant.findMany({
-      where,
-      include: { school: { select: { namaSekolah: true } } },
-      orderBy: { createdAt: 'desc' },
-    });
-
     return NextResponse.json({ success: true, data: applicants });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
@@ -39,22 +37,46 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const now = new Date().toISOString();
 
-    // Generate nomor pendaftaran
-    const count = await db.applicant.count();
+    const count = await applicantsTable.count();
     const nomorPendaftaran = `SPMB-2026-${String(count + 1).padStart(6, '0')}`;
 
-    const applicant = await db.applicant.create({
-      data: {
-        ...body,
-        nomorPendaftaran,
-      },
-    });
+    const applicant: Record<string, unknown> = {
+      applicantId: body.applicantId || `app-${Date.now()}`,
+      nomorPendaftaran,
+      nik: body.nik || '',
+      nisn: body.nisn || '',
+      namaSiswa: body.namaSiswa || '',
+      tempatLahir: body.tempatLahir || '',
+      tanggalLahir: body.tanggalLahir || '',
+      jenisKelamin: body.jenisKelamin || '',
+      agama: body.agama || '',
+      alamat: body.alamat || '',
+      desa: body.desa || '',
+      kecamatan: body.kecamatan || '',
+      namaAyah: body.namaAyah || '',
+      nikAyah: body.nikAyah || '',
+      pekerjaanAyah: body.pekerjaanAyah || '',
+      namaIbu: body.namaIbu || '',
+      nikIbu: body.nikIbu || '',
+      pekerjaanIbu: body.pekerjaanIbu || '',
+      noHpOrtu: body.noHpOrtu || '',
+      schoolId: body.schoolId || '',
+      namaSekolah: body.namaSekolah || '',
+      jalur: body.jalur || 'domisili',
+      statusBerkas: body.statusBerkas || 'belum_lengkap',
+      statusPendaftaran: body.statusPendaftaran || 'draft',
+      catatanOperator: body.catatanOperator || '',
+      createdAt: now,
+      updatedAt: now,
+    };
 
+    await applicantsTable.create(applicant);
     return NextResponse.json({ success: true, data: applicant }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 400 }
     );
   }
@@ -62,12 +84,23 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    const user = await verifyAuth(request);
+    if (!user) return unauthorized();
+
     const { id, ...updates } = await request.json();
-    const applicant = await db.applicant.update({ where: { id }, data: updates });
-    return NextResponse.json({ success: true, data: applicant });
-  } catch (error: any) {
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'ID pendaftar wajib diisi' }, { status: 400 });
+    }
+
+    updates.updatedAt = new Date().toISOString();
+    const result = await applicantsTable.update(id, updates);
+    if (!result) {
+      return NextResponse.json({ success: false, error: 'Pendaftar tidak ditemukan' }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, data: result });
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message },
+      { success: false, error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 400 }
     );
   }

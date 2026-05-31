@@ -1,42 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { lembagaPaudTable } from '@/lib/sheet-config';
+import { lulusanTKPaudKb } from '@/lib/portal-dinas-data';
 
-// GET /api/lembaga-paud - Query lembaga PAUD
+async function getAllLembaga(): Promise<Record<string, unknown>[]> {
+  try {
+    return await lembagaPaudTable.findAll() as Record<string, unknown>[];
+  } catch {
+    const seen = new Map<string, Record<string, unknown>>();
+    lulusanTKPaudKb.forEach((s) => {
+      const key = `${s.jenjang}-${s.npsn}`;
+      if (!seen.has(key) && s.sekolahAsal) {
+        seen.set(key, {
+          id: key,
+          npsn: s.npsn,
+          namaLembaga: s.sekolahAsal,
+          jenisLembaga: s.jenjang,
+          kecamatan: s.kecamatan || 'Lemahabang',
+          desa: s.desa || '',
+          statusAktif: true,
+        });
+      }
+    });
+    return Array.from(seen.values());
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
+    const kecamatan = searchParams.get('kecamatan');
+    const desa = searchParams.get('desa');
+    const jenis = searchParams.get('jenis');
+    const nama = searchParams.get('nama');
+    const npsn = searchParams.get('npsn');
 
-    const kecamatan = searchParams.get('kecamatan') || undefined;
-    const desa = searchParams.get('desa') || undefined;
-    const jenisLembaga = searchParams.get('jenisLembaga') || undefined;
-    const namaLembaga = searchParams.get('namaLembaga') || undefined;
-    const npsn = searchParams.get('npsn') || undefined;
+    let data = await getAllLembaga();
 
-    const where: any = { statusAktif: true };
+    if (kecamatan) data = data.filter((r) => r.kecamatan === kecamatan);
+    if (desa) data = data.filter((r) => r.desa === desa);
+    if (jenis) data = data.filter((r) => r.jenisLembaga === jenis);
+    if (nama) data = data.filter((r) => r.namaLembaga && String(r.namaLembaga).toLowerCase().includes(nama.toLowerCase()));
+    if (npsn) data = data.filter((r) => r.npsn === npsn);
 
-    if (kecamatan) where.kecamatan = kecamatan;
-    if (desa) where.desa = desa;
-    if (jenisLembaga) where.jenisLembaga = jenisLembaga;
-    if (namaLembaga) where.namaLembaga = { contains: namaLembaga };
-    if (npsn) where.npsn = npsn;
-
-    const lembaga = await db.lembagaPaud.findMany({
-      where,
-      include: {
-        _count: { select: { siswa: true, importLogs: true } },
-      },
-      orderBy: { namaLembaga: 'asc' },
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: lembaga,
-    });
-
-  } catch (error: any) {
-    console.error('Error fetching lembaga PAUD:', error);
+    return NextResponse.json({ success: true, data });
+  } catch (error: unknown) {
     return NextResponse.json(
-      { success: false, error: error.message || 'Internal server error' },
+      { success: false, error: error instanceof Error ? error.message : 'Gagal mengambil data lembaga' },
       { status: 500 }
     );
   }
