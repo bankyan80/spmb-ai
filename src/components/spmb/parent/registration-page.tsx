@@ -250,6 +250,8 @@ export function RegistrationPage() {
       }
       if (!formData.tanggalLahir) {
         newErrors.tanggalLahir = 'Tanggal lahir wajib diisi';
+      } else if (ageResult && (ageResult.statusUsia === 'belum_memenuhi' || ageResult.statusUsia === 'perlu_rekomendasi')) {
+        newErrors.tanggalLahir = ageResult.pesan;
       }
       if (!formData.jenisKelamin) {
         newErrors.jenisKelamin = 'Jenis kelamin wajib dipilih';
