@@ -128,8 +128,27 @@ export function ParentHomePage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#F3F8FF' }}>
-      {/* Header */}
+    <div className="flex flex-col min-h-screen relative" style={{ backgroundColor: '#F3F8FF' }}>
+      {/* Background image with overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'url(/assets/images/anak_anak_ceria_di_halaman_sekolah.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center 20%',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(180deg, rgba(243,248,255,0.92) 0%, rgba(243,248,255,0.98) 50%, #F3F8FF 100%)',
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* Header */}
       <SpmbHeader
         title="SPMB SD 2026/2027"
         showBack={false}
@@ -320,8 +339,9 @@ export function ParentHomePage() {
         </motion.div>
       </main>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation activeTab="beranda" onTabChange={handleTabChange} />
+        {/* Bottom Navigation */}
+        <BottomNavigation activeTab="beranda" onTabChange={handleTabChange} />
+      </div>
     </div>
   );
 }
