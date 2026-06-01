@@ -5,6 +5,17 @@ import { AppPage, UserRole, User, Applicant, ChatMessage, ParentAccess, ChatAISe
 import { mockSchools, mockApplicants, mockSettings, mockUsers, mockAnnouncements } from './mock-data';
 import type { School, SettingsSPMB, Announcement } from './types';
 
+async function fetchApi<T>(url: string, fallback: T): Promise<T> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return fallback;
+    const json = await res.json();
+    return json.success && json.data ? json.data : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 const DEFAULT_CHAT_AI_SETTINGS: ChatAISettings = {
   id: 'default',
   modelAI: 'gemini-2.0-flash',
@@ -103,6 +114,10 @@ interface SpmbState {
   addSchool: (school: School) => void;
   addUser: (user: User) => void;
 
+  // Data loading
+  dataLoaded: boolean;
+  initApp: () => Promise<void>;
+
   // Status daftar ulang
   reRegistrationStatus: Record<string, string>;
   submitReRegistration: (applicantId: string) => void;
@@ -131,11 +146,12 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   setAuthToken: (token) => set({ authToken: token }),
 
   // Data
-  schools: mockSchools,
-  applicants: mockApplicants,
+  dataLoaded: false,
+  schools: [],
+  applicants: [],
   settings: mockSettings,
-  announcements: mockAnnouncements,
-  users: mockUsers,
+  announcements: [],
+  users: [],
   selectedApplicant: null,
 
   // Chat
@@ -169,7 +185,8 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
 
   // Actions
   loginWithGoogle: (email) => {
-    const user = mockUsers.find(
+    const users = get().users;
+    const user = (users.length ? users : mockUsers).find(
       (u) => u.email.toLowerCase() === email.toLowerCase() && u.statusAktif
     );
     if (user) {
@@ -187,17 +204,20 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   },
 
   loginParent: (identifier, type) => {
+    const applicants = get().applicants;
+    const pool = applicants.length ? applicants : mockApplicants;
+
     let found = false;
     if (type === 'hp') {
-      found = mockApplicants.some((a) => a.noHpOrtu === identifier);
+      found = pool.some((a) => a.noHpOrtu === identifier);
     } else if (type === 'nik') {
-      found = mockApplicants.some((a) => a.nik === identifier);
+      found = pool.some((a) => a.nik === identifier);
     } else if (type === 'noreg') {
-      found = mockApplicants.some((a) => a.nomorPendaftaran === identifier);
+      found = pool.some((a) => a.nomorPendaftaran === identifier);
     }
 
     if (found || identifier.length >= 5) {
-      const applicant = mockApplicants.find((a) => {
+      const applicant = pool.find((a) => {
         if (type === 'hp') return a.noHpOrtu === identifier;
         if (type === 'nik') return a.nik === identifier;
         if (type === 'noreg') return a.nomorPendaftaran === identifier;
@@ -234,6 +254,23 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
       isAuthenticated: false,
     });
     get().navigateTo('beranda');
+  },
+
+  initApp: async () => {
+    if (get().dataLoaded) return;
+
+    const [schools, applicants, announcements] = await Promise.all([
+      fetchApi<School[]>('/api/schools', mockSchools),
+      fetchApi<Applicant[]>('/api/applicants', mockApplicants),
+      fetchApi<Announcement[]>('/api/announcements', mockAnnouncements),
+    ]);
+
+    set({
+      dataLoaded: true,
+      schools,
+      applicants,
+      announcements,
+    });
   },
 
   setParentAccess: (data) => set({ parentAccess: data }),

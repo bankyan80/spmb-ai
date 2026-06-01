@@ -625,9 +625,7 @@ export const syaratDokumen = [
 ];
 
 export const jalurPendaftaran = [
-  { id: 'domisili', nama: 'Jalur Domisili', kuota: 60, deskripsi: 'Calon siswa yang berdomisili di sekitar sekolah' },
+  { id: 'domisili', nama: 'Jalur Domisili', kuota: 70, deskripsi: 'Calon siswa yang berdomisili di sekitar sekolah' },
   { id: 'afirmasi', nama: 'Jalur Afirmasi', kuota: 15, deskripsi: 'Calon siswa dari keluarga kurang mampu (KIP/KKS/PKH)' },
-  { id: 'mutasi', nama: 'Jalur Mutasi', kuota: 10, deskripsi: 'Calon siswa orang tua pindah tugas' },
-  { id: 'prestasi', nama: 'Jalur Prestasi', kuota: 10, deskripsi: 'Calon siswa berprestasi' },
-  { id: 'zoning', nama: 'Jalur Zoning', kuota: 5, deskripsi: 'Calon siswa dalam zona terdekat' },
+  { id: 'mutasi', nama: 'Jalur Mutasi', kuota: 15, deskripsi: 'Calon siswa orang tua pindah tugas' },
 ];

@@ -21,7 +21,7 @@ import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
 import { StatusBadge } from '@/components/spmb/shared/status-badge';
 import { calculateAge, generateRegistrationNumber, formatDate, getJalurLabel } from '@/lib/business-logic';
-import { mockSchools, jalurPendaftaran } from '@/lib/mock-data';
+import { jalurPendaftaran } from '@/lib/mock-data';
 import type { Applicant, JalurPendaftaran } from '@/lib/types';
 
 const STEPS = [
@@ -107,6 +107,7 @@ export function RegistrationPage() {
     addApplicant,
     applicants,
     settings,
+    schools,
   } = useSpmbStore();
 
   const [formData, setFormData] = useState<RegistrationFormData>({
@@ -319,7 +320,7 @@ export function RegistrationPage() {
     const nomor = generateRegistrationNumber();
     setNomorRegistrasi(nomor);
 
-    const selectedSchool = mockSchools.find((s) => s.schoolId === formData.schoolId);
+    const selectedSchool = schools.find((s) => s.schoolId === formData.schoolId);
 
     const newApplicant: Applicant = {
       applicantId: `app-${Date.now()}`,
@@ -678,7 +679,7 @@ export function RegistrationPage() {
               id="schoolId"
               value={formData.schoolId}
               onChange={(e) => {
-                const school = mockSchools.find((s) => s.schoolId === e.target.value);
+                const school = schools.find((s) => s.schoolId === e.target.value);
                 updateField('schoolId', e.target.value);
                 if (school) updateField('namaSekolah', school.namaSekolah);
               }}
@@ -690,7 +691,7 @@ export function RegistrationPage() {
               }}
             >
               <option value="">Pilih Sekolah Tujuan</option>
-              {mockSchools.map((s) => (
+              {schools.map((s) => (
                 <option key={s.schoolId} value={s.schoolId}>
                   {s.namaSekolah} (Kuota: {s.sisaKuota})
                 </option>
@@ -1087,7 +1088,7 @@ export function RegistrationPage() {
 
   // Step 4 - Konfirmasi
   const renderStep4 = () => {
-    const selectedSchool = mockSchools.find((s) => s.schoolId === formData.schoolId);
+    const selectedSchool = schools.find((s) => s.schoolId === formData.schoolId);
     const selectedJalur = jalurPendaftaran.find((j) => j.id === formData.jalur);
 
     const sections = [

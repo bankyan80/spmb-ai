@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserCog, Plus, Pencil, Save } from 'lucide-react';
 import { useSpmbStore } from '@/lib/store';
 import { StatusBadge } from '@/components/spmb/shared/status-badge';
@@ -13,16 +13,21 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { mockUsers } from '@/lib/mock-data';
 import type { User } from '@/lib/types';
 
 export function OperatorAccountPage() {
   const store = useSpmbStore();
-  const { schools, addUser } = store;
+  const { schools, users, addUser } = store;
 
   const [operators, setOperators] = useState<User[]>(
-    mockUsers.filter((u) => u.role === 'operator')
+    () => users.filter((u) => u.role === 'operator')
   );
+
+  useEffect(() => {
+    if (users.length) {
+      setOperators(users.filter((u) => u.role === 'operator'));
+    }
+  }, [users]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formNama, setFormNama] = useState('');

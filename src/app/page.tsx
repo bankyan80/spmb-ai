@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSpmbStore } from '@/lib/store';
 import { SplashPage } from '@/components/spmb/splash-page';
 import { PilihanAksesPage } from '@/components/spmb/pilihan-akses-page';
@@ -71,6 +71,9 @@ const OPERATOR_PAGES = new Set([
 export default function Home() {
   const currentPage = useSpmbStore((s) => s.currentPage);
   const currentUser = useSpmbStore((s) => s.currentUser);
+  const initApp = useSpmbStore((s) => s.initApp);
+
+  useEffect(() => { initApp(); }, [initApp]);
 
   const isAdminUser = currentUser?.role === 'admin';
   const isOperatorUser = currentUser?.role === 'operator';

@@ -21,8 +21,6 @@ import {
   spmbSchedule,
   syaratDokumen,
   jalurPendaftaran,
-  mockSettings,
-  mockSchools,
 } from '@/lib/mock-data';
 
 interface InfoSectionProps {
@@ -52,7 +50,7 @@ function InfoSection({ icon, title, color, children }: InfoSectionProps) {
 }
 
 export function InfoPendaftaranPage() {
-  const { navigateTo, goBack } = useSpmbStore();
+  const { navigateTo, goBack, settings, schools } = useSpmbStore();
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#F3F8FF' }}>
@@ -82,7 +80,7 @@ export function InfoPendaftaranPage() {
         <InfoSection icon={<Baby className="size-5" />} title="Syarat Usia" color="#009688">
           <div className="space-y-3">
             <p className="text-xs font-medium" style={{ color: '#6B7280' }}>
-              Penentuan usia dihitung per <strong>{formatDate(mockSettings.tanggalAcuanUsia)}</strong>:
+              Penentuan usia dihitung per <strong>{formatDate(settings.tanggalAcuanUsia)}</strong>:
             </p>
 
             <div
@@ -92,11 +90,11 @@ export function InfoPendaftaranPage() {
               <div className="flex items-center gap-2 mb-1">
                 <CheckCircle className="size-4" style={{ color: '#2E7D32' }} />
                 <p className="text-sm font-semibold" style={{ color: '#1B5E20' }}>
-                  Usia Prioritas Utama: {mockSettings.usiaPrioritasSD} Tahun
+                  Usia Prioritas Utama: {settings.usiaPrioritasSD} Tahun
                 </p>
               </div>
               <p className="text-xs" style={{ color: '#2E7D32' }}>
-                Calon murid yang sudah berusia {mockSettings.usiaPrioritasSD} tahun wajib diterima dan mendapatkan prioritas tertinggi dalam antrean seleksi.
+                Calon murid yang sudah berusia {settings.usiaPrioritasSD} tahun wajib diterima dan mendapatkan prioritas tertinggi dalam antrean seleksi.
               </p>
             </div>
 
@@ -107,11 +105,11 @@ export function InfoPendaftaranPage() {
               <div className="flex items-center gap-2 mb-1">
                 <CheckCircle className="size-4" style={{ color: '#1565C0' }} />
                 <p className="text-sm font-semibold" style={{ color: '#0D47A1' }}>
-                  Usia Minimal Standar: {mockSettings.usiaMinimalSD} Tahun
+                  Usia Minimal Standar: {settings.usiaMinimalSD} Tahun
                 </p>
               </div>
               <p className="text-xs" style={{ color: '#1565C0' }}>
-                Calon murid berusia paling rendah {mockSettings.usiaMinimalSD} tahun diperbolehkan mendaftar.
+                Calon murid berusia paling rendah {settings.usiaMinimalSD} tahun diperbolehkan mendaftar.
               </p>
             </div>
 
@@ -242,7 +240,7 @@ export function InfoPendaftaranPage() {
         {/* Kuota Sekolah */}
         <InfoSection icon={<School className="size-5" />} title="Kuota Sekolah" color="#43A047">
           <div className="space-y-2">
-            {mockSchools.map((school) => {
+            {schools.map((school) => {
               const percentage = Math.round((school.sisaKuota / school.kuota) * 100);
               const isFull = school.sisaKuota === 0;
               const isLow = school.sisaKuota > 0 && school.sisaKuota <= school.kuota * 0.2;
