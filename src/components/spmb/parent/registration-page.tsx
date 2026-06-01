@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   CheckCircle,
   Circle,
@@ -933,25 +933,18 @@ export function RegistrationPage() {
 
   // Step 3 - Data Tambahan
   const renderStep3 = () => {
-    const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-
     const handleFileUpload = (field: keyof RegistrationFormData) => {
-      if (formData[field]) {
-        // If already uploaded, remove it
-        setFormData((prev) => ({ ...prev, [field]: '' }));
-      } else {
-        // Trigger native file picker
-        fileInputRefs.current[field]?.click();
-      }
-    };
-
-    const handleFileChange = (field: keyof RegistrationFormData, e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        setFormData((prev) => ({ ...prev, [field]: file.name }));
-      }
-      // Reset so same file can be re-selected
-      e.target.value = '';
+      const filenames: Record<string, string> = {
+        dokumenKK: 'kartu_keluarga.pdf',
+        dokumenAkta: 'akta_kelahiran.pdf',
+        dokumenKTP: 'ktp_ortu.pdf',
+        dokumenKIP: 'kip_kks_pkh.pdf',
+        dokumenPendukung: 'dokumen_pendukung.pdf',
+      };
+      setFormData((prev) => ({
+        ...prev,
+        [field]: prev[field] ? '' : filenames[field] || 'dokumen.pdf',
+      }));
     };
 
     return (
@@ -1067,13 +1060,6 @@ export function RegistrationPage() {
                   backgroundColor: formData[doc.key] ? '#F0FFF4' : '#F9FAFB',
                 }}
               >
-                <input
-                  type="file"
-                  ref={(el) => { fileInputRefs.current[doc.key] = el; }}
-                  onChange={(e) => handleFileChange(doc.key, e)}
-                  className="hidden"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                />
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <FileText
                     className="size-4 shrink-0"
