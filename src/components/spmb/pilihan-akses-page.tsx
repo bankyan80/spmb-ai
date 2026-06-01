@@ -2,7 +2,13 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { GraduationCap, Users, Shield, HelpCircle, BookOpen, Phone } from 'lucide-react';
+import { GraduationCap, Users, HelpCircle, BookOpen, Phone, MoreVertical, Shield } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import { useSpmbStore } from '@/lib/store';
 
 export function PilihanAksesPage() {
@@ -34,7 +40,24 @@ export function PilihanAksesPage() {
       {/* Content */}
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* Top section with logo */}
-        <div className="flex flex-col items-center pt-12 pb-6 px-6">
+        <div className="relative flex flex-col items-center pt-12 pb-6 px-6">
+          {/* Three-dot menu */}
+          <div className="absolute top-4 right-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center justify-center size-9 rounded-full hover:bg-black/5 transition-colors">
+                  <MoreVertical className="size-5" style={{ color: '#6B7280' }} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => navigateTo('petugas-login')}>
+                  <Shield className="size-4 mr-2" />
+                  <span>Login Petugas SPMB</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -159,55 +182,15 @@ export function PilihanAksesPage() {
           </svg>
         </motion.div>
 
-        {/* Buttons section */}
-        <div className="flex-1 flex flex-col items-center px-6 gap-4">
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigateTo('beranda')}
-            className="w-full max-w-sm flex items-center gap-4 rounded-2xl px-5 py-4 shadow-lg transition-shadow hover:shadow-xl"
-            style={{
-              background: 'linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)',
-            }}
-          >
-            <div className="flex items-center justify-center size-12 rounded-xl bg-white/20 shrink-0">
-              <Users className="size-6 text-white" strokeWidth={2} />
-            </div>
-            <div className="text-left">
-              <p className="text-white font-semibold text-base">Masuk sebagai Orang Tua/Wali</p>
-              <p className="text-white/70 text-xs mt-0.5">Akses layanan pendaftaran siswa</p>
-            </div>
-          </motion.button>
-
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigateTo('petugas-login')}
-            className="w-full max-w-sm flex items-center gap-4 rounded-2xl px-5 py-4 shadow-lg transition-shadow hover:shadow-xl"
-            style={{
-              background: 'linear-gradient(135deg, #009688 0%, #00796B 100%)',
-            }}
-          >
-            <div className="flex items-center justify-center size-12 rounded-xl bg-white/20 shrink-0">
-              <Shield className="size-6 text-white" strokeWidth={2} />
-            </div>
-            <div className="text-left">
-              <p className="text-white font-semibold text-base">Login Petugas SPMB</p>
-              <p className="text-white/70 text-xs mt-0.5">Akses panel verifikasi & admin</p>
-            </div>
-          </motion.button>
-        </div>
+        {/* Spacer */}
+        <div className="flex-1" />
 
         {/* Footer links */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 1 }}
-          className="flex items-center justify-center gap-6 py-6 mt-auto"
+          className="flex items-center justify-center gap-6 py-6"
         >
           <button
             onClick={() => navigateTo('bantuan')}
@@ -232,6 +215,24 @@ export function PilihanAksesPage() {
             Kontak Panitia
           </button>
         </motion.div>
+
+        {/* MULAI button */}
+        <div className="px-6 pb-8">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigateTo('beranda')}
+            className="w-full max-w-sm mx-auto flex items-center justify-center gap-3 rounded-2xl px-5 py-4 shadow-lg transition-shadow hover:shadow-xl"
+            style={{
+              background: 'linear-gradient(135deg, #1565C0 0%, #0D47A1 100%)',
+            }}
+          >
+            <Users className="size-6 text-white" strokeWidth={2} />
+            <span className="text-white font-bold text-lg tracking-[0.3em]">MULAI</span>
+          </motion.button>
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  LogOut,
   MessageSquare,
   Baby,
   MapPin,
@@ -13,10 +12,18 @@ import {
   CheckCircle,
   FileText,
   ChevronRight,
+  EllipsisVertical,
+  Shield,
 } from 'lucide-react';
 import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
 import { BottomNavigation, type BottomTab } from '@/components/spmb/shared/bottom-navigation';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 import type { AppPage } from '@/lib/types';
 
 interface MenuCard {
@@ -101,7 +108,7 @@ const infoPendaftaran: MenuCard = {
 };
 
 export function ParentHomePage() {
-  const { parentAccess, logout, navigateTo } = useSpmbStore();
+  const { parentAccess, navigateTo } = useSpmbStore();
 
   const namaOrangTua = parentAccess?.namaOrangTua || 'Orang Tua/Wali';
 
@@ -127,13 +134,22 @@ export function ParentHomePage() {
         title="SPMB SD 2026/2027"
         showBack={false}
         rightAction={
-          <button
-            onClick={logout}
-            className="flex items-center justify-center size-9 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors"
-            aria-label="Keluar"
-          >
-            <LogOut className="size-5 text-white" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex items-center justify-center size-9 rounded-full hover:bg-white/10 active:bg-white/20 transition-colors"
+                aria-label="Menu"
+              >
+                <EllipsisVertical className="size-5 text-white" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-[180px]">
+              <DropdownMenuItem onClick={() => navigateTo('petugas-login')}>
+                <Shield className="size-4 mr-2" />
+                Login Petugas
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         }
       />
 

@@ -110,7 +110,7 @@ interface SpmbState {
 
 export const useSpmbStore = create<SpmbState>((set, get) => ({
   // Navigation
-  currentPage: 'splash',
+  currentPage: 'beranda',
   previousPage: null,
   navigateTo: (page) =>
     set((state) => ({
@@ -233,7 +233,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
       parentAccess: null,
       isAuthenticated: false,
     });
-    get().navigateTo('splash');
+    get().navigateTo('beranda');
   },
 
   setParentAccess: (data) => set({ parentAccess: data }),
