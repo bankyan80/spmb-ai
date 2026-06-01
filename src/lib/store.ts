@@ -271,7 +271,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
       schools: schools ?? [],
       applicants: applicants ?? [],
       announcements: announcements ?? [],
-      users: apiUsers ? (apiUsers as unknown as User[]) : get().users,
+      users: apiUsers && apiUsers.length > 0 ? (apiUsers as unknown as User[]) : get().users,
     });
   },
 
