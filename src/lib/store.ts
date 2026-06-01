@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { AppPage, UserRole, User, Applicant, ChatMessage, ParentAccess, ChatAISettings, ChatStatusIndicator } from './types';
-import { mockSettings } from './mock-data';
+import { mockSettings, mockUsers } from './mock-data';
 import type { School, SettingsSPMB, Announcement } from './types';
 
 async function fetchApi<T>(url: string): Promise<T | null> {
@@ -151,7 +151,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   applicants: [],
   settings: mockSettings,
   announcements: [],
-  users: [],
+  users: mockUsers,
   selectedApplicant: null,
 
   // Chat
@@ -259,10 +259,11 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   initApp: async () => {
     if (get().dataLoaded) return;
 
-    const [schools, applicants, announcements] = await Promise.all([
+    const [schools, applicants, announcements, apiUsers] = await Promise.all([
       fetchApi<School[]>('/api/schools'),
       fetchApi<Applicant[]>('/api/applicants'),
       fetchApi<Announcement[]>('/api/announcements'),
+      fetchApi<Record<string, unknown>[]>('/api/users'),
     ]);
 
     set({
@@ -270,6 +271,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
       schools: schools ?? [],
       applicants: applicants ?? [],
       announcements: announcements ?? [],
+      users: apiUsers ? (apiUsers as unknown as User[]) : get().users,
     });
   },
 
