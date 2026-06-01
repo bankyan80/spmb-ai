@@ -109,11 +109,19 @@ export function findNearestSchools(
 export function checkQuota(school: School): { sisaKuota: number; statusKuota: string } {
   if (school.sisaKuota <= 0) {
     return { sisaKuota: 0, statusKuota: 'Penuh' };
-  } else if (school.sisaKuota <= school.kuota * 0.2) {
-    return { sisaKuota: school.sisaKuota, statusKuota: 'Hampir Penuh' };
+  } else if (school.sisaKuota <= 5) {
+    return { sisaKuota: school.sisaKuota, statusKuota: 'Terbatas' };
   } else {
     return { sisaKuota: school.sisaKuota, statusKuota: 'Tersedia' };
   }
+}
+
+export function formatDistance(km: number): string {
+  if (km < 1) {
+    const meters = Math.round(km * 1000);
+    return `${meters} meter`;
+  }
+  return `${km.toFixed(1).replace('.', ',')} km`;
 }
 
 export function canVerifyApplicant(

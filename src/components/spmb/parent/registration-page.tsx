@@ -15,14 +15,18 @@ import {
   ClipboardCheck,
   AlertCircle,
   Download,
+  ExternalLink,
+  Route,
+  Navigation,
+  ArrowRight,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
 import { StatusBadge } from '@/components/spmb/shared/status-badge';
-import { calculateAge, generateRegistrationNumber, formatDate, getJalurLabel, calculateDistance } from '@/lib/business-logic';
+import { calculateAge, generateRegistrationNumber, formatDate, getJalurLabel, calculateDistance, findNearestSchools, checkQuota, formatDistance } from '@/lib/business-logic';
 import { jalurPendaftaran } from '@/lib/mock-data';
-import type { Applicant, JalurPendaftaran } from '@/lib/types';
+import type { Applicant, JalurPendaftaran, SchoolDistance } from '@/lib/types';
 
 const STEPS = [
   { step: 1, title: 'Data Siswa', icon: User },
@@ -124,6 +128,7 @@ export function RegistrationPage() {
   const [userLon, setUserLon] = useState<number | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [nearestSchools, setNearestSchools] = useState<SchoolDistance[]>([]);
 
   const getGpsLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -137,6 +142,8 @@ export function RegistrationPage() {
         setUserLat(pos.coords.latitude);
         setUserLon(pos.coords.longitude);
         setGpsLoading(false);
+        const nearest = findNearestSchools(pos.coords.latitude, pos.coords.longitude, schools, 10);
+        setNearestSchools(nearest);
       },
       (err) => {
         setGpsLoading(false);
@@ -422,6 +429,13 @@ export function RegistrationPage() {
       statusBerkas: 'belum_lengkap',
       statusPendaftaran: 'terkirim',
       catatanOperator: '',
+      latitudeDomisili: formData.jalur === 'domisili' && userLat !== null ? userLat : undefined,
+      longitudeDomisili: formData.jalur === 'domisili' && userLon !== null ? userLon : undefined,
+      jarakDomisiliKm: formData.jalur === 'domisili' && userLat !== null && userLon !== null && selectedSchool?.latitude && selectedSchool?.longitude
+        ? calculateDistance(userLat, userLon, selectedSchool.latitude, selectedSchool.longitude)
+        : undefined,
+      schoolLatitude: selectedSchool?.latitude,
+      schoolLongitude: selectedSchool?.longitude,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -748,37 +762,147 @@ export function RegistrationPage() {
             errors.agama,
           )}
 
-          {renderField('schoolId', 'Sekolah Tujuan', true,
-            <select
-              id="schoolId"
-              value={formData.schoolId}
-              onChange={(e) => {
-                const school = schools.find((s) => s.schoolId === e.target.value);
-                updateField('schoolId', e.target.value);
-                if (school) updateField('namaSekolah', school.namaSekolah);
-              }}
-              className="w-full h-11 rounded-lg border px-3 text-sm outline-none transition-colors appearance-none"
-              style={{
-                borderColor: errors.schoolId ? '#EF4444' : '#E5E7EB',
-                backgroundColor: '#F9FAFB',
-                color: '#1F2937',
-              }}
-            >
-              <option value="">Pilih Sekolah Tujuan</option>
-              {schools.map((s) => (
-                <option key={s.schoolId} value={s.schoolId}>
-                  {s.namaSekolah} (Kuota: {s.sisaKuota})
-                </option>
-              ))}
-            </select>,
-            errors.schoolId,
-          )}
+          {formData.jalur !== 'domisili' ? (
+            renderField('schoolId', 'Sekolah Tujuan', true,
+              <select
+                id="schoolId"
+                value={formData.schoolId}
+                onChange={(e) => {
+                  const school = schools.find((s) => s.schoolId === e.target.value);
+                  updateField('schoolId', e.target.value);
+                  if (school) updateField('namaSekolah', school.namaSekolah);
+                }}
+                className="w-full h-11 rounded-lg border px-3 text-sm outline-none transition-colors appearance-none"
+                style={{
+                  borderColor: errors.schoolId ? '#EF4444' : '#E5E7EB',
+                  backgroundColor: '#F9FAFB',
+                  color: '#1F2937',
+                }}
+              >
+                <option value="">Pilih Sekolah Tujuan</option>
+                {schools.map((s) => (
+                  <option key={s.schoolId} value={s.schoolId}>
+                    {s.namaSekolah} (Kuota: {s.sisaKuota})
+                  </option>
+                ))}
+              </select>,
+              errors.schoolId,
+            )
+          ) : userLat !== null && userLon !== null && nearestSchools.length > 0 ? (
+            <div>
+              <label className="block text-xs font-medium mb-2" style={{ color: '#6B7280' }}>
+                Sekolah Terdekat <span style={{ color: '#EF4444' }}> *</span>
+              </label>
+              <div className="space-y-2">
+                {nearestSchools.slice(0, 5).map((sd, idx) => {
+                  const qc = checkQuota(sd.school);
+                  const isFull = qc.statusKuota === 'Penuh';
+                  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${sd.school.latitude},${sd.school.longitude}`;
+                  const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLon}&destination=${sd.school.latitude},${sd.school.longitude}&travelmode=driving`;
+
+                  return (
+                    <button
+                      key={sd.school.schoolId}
+                      type="button"
+                      onClick={() => {
+                        if (!isFull) {
+                          updateField('schoolId', sd.school.schoolId);
+                          updateField('namaSekolah', sd.school.namaSekolah);
+                        }
+                      }}
+                      disabled={isFull}
+                      className="w-full text-left rounded-xl border p-3 transition-all"
+                      style={{
+                        borderColor: formData.schoolId === sd.school.schoolId ? '#1565C0' : '#E5E7EB',
+                        backgroundColor: formData.schoolId === sd.school.schoolId ? '#E3F2FD' : '#FFFFFF',
+                        opacity: isFull ? 0.5 : 1,
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="flex items-center justify-center size-6 rounded-full shrink-0 text-[10px] font-bold" style={{ backgroundColor: '#E3F2FD', color: '#1565C0' }}>
+                            {idx + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold truncate" style={{ color: '#1F2937' }}>
+                              {sd.school.namaSekolah}
+                            </p>
+                            <p className="text-xs" style={{ color: '#6B7280' }}>
+                              Desa {sd.school.desa} — {formatDistance(sd.jarakKm)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span
+                            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                            style={{
+                              backgroundColor: qc.statusKuota === 'Tersedia' ? '#E8F5E9' : qc.statusKuota === 'Terbatas' ? '#FFF3E0' : '#FFEBEE',
+                              color: qc.statusKuota === 'Tersedia' ? '#2E7D32' : qc.statusKuota === 'Terbatas' ? '#E65100' : '#C62828',
+                            }}
+                          >
+                            {qc.statusKuota === 'Penuh' ? 'Penuh' : `Sisa ${sd.school.sisaKuota}`}
+                          </span>
+                          {formData.schoolId === sd.school.schoolId && (
+                            <CheckCircle className="size-4" style={{ color: '#1565C0' }} />
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${Math.min(100, Math.round((sd.school.sisaKuota / Math.max(sd.school.kuota, 1)) * 100))}%`,
+                              backgroundColor: isFull ? '#EF4444' : qc.statusKuota === 'Terbatas' ? '#F59E0B' : '#43A047',
+                            }}
+                          />
+                        </div>
+                        <div className="flex gap-1">
+                          <a
+                            href={mapsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center size-6 rounded text-[10px] font-medium"
+                            style={{ backgroundColor: '#F3F8FF', color: '#1565C0', border: '1px solid #BBDEFB' }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink className="size-3" />
+                          </a>
+                          <a
+                            href={routeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-center size-6 rounded text-[10px] font-medium"
+                            style={{ backgroundColor: '#E8F5E9', color: '#2E7D32', border: '1px solid #C8E6C9' }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Route className="size-3" />
+                          </a>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.schoolId && (
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#EF4444' }}>
+                  <AlertCircle className="size-3" />
+                  {errors.schoolId}
+                </p>
+              )}
+            </div>
+          ) : null}
 
           {renderField('jalur', 'Jalur Pendaftaran', true,
             <select
               id="jalur"
               value={formData.jalur}
-              onChange={(e) => updateField('jalur', e.target.value)}
+              onChange={(e) => {
+                updateField('jalur', e.target.value);
+                if (e.target.value !== 'domisili') {
+                  setNearestSchools([]);
+                }
+              }}
               className="w-full h-11 rounded-lg border px-3 text-sm outline-none transition-colors appearance-none"
               style={{
                 borderColor: errors.jalur ? '#EF4444' : '#E5E7EB',
@@ -839,8 +963,8 @@ export function RegistrationPage() {
                     </>
                   ) : (
                     <>
-                      <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
-                      Aktifkan GPS untuk Verifikasi Jarak Domisili
+                      <Navigation className="size-4" />
+                      Ambil Lokasi GPS untuk Cari Sekolah Terdekat
                     </>
                   )}
                 </button>

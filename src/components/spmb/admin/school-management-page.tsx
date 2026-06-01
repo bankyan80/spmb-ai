@@ -28,6 +28,7 @@ export function SchoolManagementPage() {
     alamat: '',
     desa: '',
     kecamatan: '',
+    kabupaten: 'Cirebon',
     latitude: -6.35,
     longitude: 106.9,
     kuota: 0,
@@ -61,6 +62,7 @@ export function SchoolManagementPage() {
       alamat: '',
       desa: '',
       kecamatan: '',
+      kabupaten: 'Cirebon',
       latitude: -6.35,
       longitude: 106.9,
       kuota: 0,
@@ -116,7 +118,22 @@ export function SchoolManagementPage() {
                 <span className="truncate">{school.alamat}</span>
               </div>
               <div className="flex items-center gap-1.5 text-xs" style={{ color: '#6B7280' }}>
-                <span className="ml-[18px]">{school.desa}, {school.kecamatan}</span>
+                <span className="ml-[18px]">{school.desa}, {school.kecamatan}, {school.kabupaten}</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs" style={{ color: '#9CA3AF' }}>
+                <span className="ml-[18px]">
+                  Lat: {school.latitude.toFixed(4)}, Lng: {school.longitude.toFixed(4)}
+                </span>
+                {school.latitude && school.longitude && (
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${school.latitude},${school.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    Maps
+                  </a>
+                )}
               </div>
             </div>
 
@@ -183,6 +200,25 @@ export function SchoolManagementPage() {
                 value={editingSchool.kecamatan}
                 onChange={(v) => setEditingSchool({ ...editingSchool, kecamatan: v })}
               />
+              <FieldInput
+                label="Kabupaten"
+                value={editingSchool.kabupaten}
+                onChange={(v) => setEditingSchool({ ...editingSchool, kabupaten: v })}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <FieldInput
+                  label="Latitude"
+                  type="number"
+                  value={String(editingSchool.latitude)}
+                  onChange={(v) => setEditingSchool({ ...editingSchool, latitude: parseFloat(v) || 0 })}
+                />
+                <FieldInput
+                  label="Longitude"
+                  type="number"
+                  value={String(editingSchool.longitude)}
+                  onChange={(v) => setEditingSchool({ ...editingSchool, longitude: parseFloat(v) || 0 })}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <FieldInput
                   label="Kuota"
@@ -253,6 +289,25 @@ export function SchoolManagementPage() {
               value={newSchool.kecamatan}
               onChange={(v) => setNewSchool({ ...newSchool, kecamatan: v })}
             />
+            <FieldInput
+              label="Kabupaten"
+              value={newSchool.kabupaten}
+              onChange={(v) => setNewSchool({ ...newSchool, kabupaten: v })}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <FieldInput
+                label="Latitude"
+                type="number"
+                value={String(newSchool.latitude)}
+                onChange={(v) => setNewSchool({ ...newSchool, latitude: parseFloat(v) || 0 })}
+              />
+              <FieldInput
+                label="Longitude"
+                type="number"
+                value={String(newSchool.longitude)}
+                onChange={(v) => setNewSchool({ ...newSchool, longitude: parseFloat(v) || 0 })}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <FieldInput
                 label="Kuota"

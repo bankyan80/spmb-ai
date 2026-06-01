@@ -74,6 +74,7 @@ export interface School {
   alamat: string;
   desa: string;
   kecamatan: string;
+  kabupaten: string;
   latitude: number;
   longitude: number;
   kuota: number;
@@ -107,6 +108,20 @@ export interface Applicant {
   statusBerkas: StatusBerkas;
   statusPendaftaran: StatusPendaftaran;
   catatanOperator: string;
+  latitudeDomisili?: number;
+  longitudeDomisili?: number;
+  jarakDomisiliKm?: number;
+  schoolLatitude?: number;
+  schoolLongitude?: number;
+  jalurRekomendasi?: string;
+  hasilCekDomisili?: {
+    schoolId: string;
+    namaSekolah: string;
+    jarakDomisiliKm: number;
+    sisaKuota: number;
+    statusKuota: string;
+    checkedAt: string;
+  };
   createdAt: string;
   updatedAt: string;
 }

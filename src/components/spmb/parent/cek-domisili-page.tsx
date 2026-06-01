@@ -10,10 +10,12 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
+  ExternalLink,
+  Route,
 } from 'lucide-react';
 import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
-import { findNearestSchools, checkQuota } from '@/lib/business-logic';
+import { findNearestSchools, checkQuota, formatDistance } from '@/lib/business-logic';
 import type { SchoolDistance } from '@/lib/types';
 
 export function CekDomisiliPage() {
@@ -52,7 +54,7 @@ export function CekDomisiliPage() {
         setGpsLoading(false);
         switch (err.code) {
           case err.PERMISSION_DENIED:
-            setGpsError('Izin GPS ditolak. Aktifkan GPS di pengaturan perangkat.');
+            setGpsError('Aplikasi membutuhkan izin lokasi untuk membantu mencari sekolah dasar terdekat berdasarkan domisili calon siswa. Aktifkan GPS di pengaturan perangkat.');
             break;
           case err.POSITION_UNAVAILABLE:
             setGpsError('Lokasi tidak tersedia. Coba di luar ruangan.');
@@ -92,6 +94,20 @@ export function CekDomisiliPage() {
       alamat: alamat,
       desa: desa,
       kecamatan: kecamatan,
+      latitudeDomisili: gpsLat ?? undefined,
+      longitudeDomisili: gpsLon ?? undefined,
+      jarakDomisiliKm: schoolDistance.jarakKm,
+      schoolLatitude: school.latitude,
+      schoolLongitude: school.longitude,
+      jalurRekomendasi: 'domisili',
+      hasilCekDomisili: {
+        schoolId: school.schoolId,
+        namaSekolah: school.namaSekolah,
+        jarakDomisiliKm: schoolDistance.jarakKm,
+        sisaKuota: school.sisaKuota,
+        statusKuota: quotaCheck.statusKuota,
+        checkedAt: new Date().toISOString(),
+      },
     });
     navigateTo('registration');
   };
@@ -100,8 +116,8 @@ export function CekDomisiliPage() {
     switch (statusKuota) {
       case 'Tersedia':
         return { bgColor: '#E8F5E9', textColor: '#2E7D32', icon: <CheckCircle className="size-3.5" /> };
-      case 'Hampir Penuh':
-        return { bgColor: '#FEF3C7', textColor: '#D97706', icon: <AlertCircle className="size-3.5" /> };
+      case 'Terbatas':
+        return { bgColor: '#FFF3E0', textColor: '#E65100', icon: <AlertCircle className="size-3.5" /> };
       case 'Penuh':
         return { bgColor: '#FFEBEE', textColor: '#C62828', icon: <XCircle className="size-3.5" /> };
       default:
@@ -110,18 +126,21 @@ export function CekDomisiliPage() {
   };
 
   const isFormValid = alamat.trim() || desa.trim() || kecamatan.trim();
+  const nearestAvailable = results.find((r) => checkQuota(r.school).statusKuota !== 'Penuh');
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#F3F8FF' }}>
-      {/* Header */}
       <SpmbHeader
         title="Cek Domisili"
         showBack
         onBack={() => goBack()}
       />
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-4 space-y-4">
+        <p className="text-xs" style={{ color: '#6B7280' }}>
+          Cari sekolah dasar terdekat berdasarkan lokasi rumah calon siswa.
+        </p>
+
         {/* Form Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex items-center gap-2 mb-4">
@@ -137,13 +156,8 @@ export function CekDomisiliPage() {
           </div>
 
           <div className="space-y-4">
-            {/* Alamat Lengkap */}
             <div>
-              <label
-                htmlFor="alamat"
-                className="block text-xs font-medium mb-1.5"
-                style={{ color: '#6B7280' }}
-              >
+              <label htmlFor="alamat" className="block text-xs font-medium mb-1.5" style={{ color: '#6B7280' }}>
                 Alamat Lengkap
               </label>
               <textarea
@@ -159,13 +173,8 @@ export function CekDomisiliPage() {
               />
             </div>
 
-            {/* Desa/Kelurahan */}
             <div>
-              <label
-                htmlFor="desa"
-                className="block text-xs font-medium mb-1.5"
-                style={{ color: '#6B7280' }}
-              >
+              <label htmlFor="desa" className="block text-xs font-medium mb-1.5" style={{ color: '#6B7280' }}>
                 Desa/Kelurahan
               </label>
               <input
@@ -181,13 +190,8 @@ export function CekDomisiliPage() {
               />
             </div>
 
-            {/* Kecamatan */}
             <div>
-              <label
-                htmlFor="kecamatan"
-                className="block text-xs font-medium mb-1.5"
-                style={{ color: '#6B7280' }}
-              >
+              <label htmlFor="kecamatan" className="block text-xs font-medium mb-1.5" style={{ color: '#6B7280' }}>
                 Kecamatan
               </label>
               <input
@@ -206,18 +210,51 @@ export function CekDomisiliPage() {
             {/* GPS Button */}
             <button
               onClick={handleUseGps}
-              className="w-full h-11 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              disabled={gpsLoading}
+              className="w-full h-12 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
               style={{
-                backgroundColor: '#F3F8FF',
-                color: '#1565C0',
-                border: '1px solid #BBDEFB',
+                backgroundColor: gpsLat !== null ? '#E8F5E9' : '#F3F8FF',
+                color: gpsLat !== null ? '#2E7D32' : '#1565C0',
+                border: `1px solid ${gpsLat !== null ? '#C8E6C9' : '#BBDEFB'}`,
               }}
             >
-              <Navigation className="size-4" />
-              {usingGps ? 'Lokasi GPS Terdeteksi' : 'Gunakan Lokasi GPS'}
+              {gpsLoading ? (
+                <>
+                  <div className="size-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                  Mendeteksi lokasi...
+                </>
+              ) : gpsLat !== null ? (
+                <>
+                  <CheckCircle className="size-4" />
+                  Lokasi GPS Aktif
+                </>
+              ) : (
+                <>
+                  <Navigation className="size-4" />
+                  Ambil Lokasi GPS
+                </>
+              )}
             </button>
 
-            {/* Search Button */}
+            {gpsError && (
+              <div className="rounded-xl p-3 text-xs flex items-start gap-2" style={{ backgroundColor: '#FFF3E0', color: '#E65100', border: '1px solid #FFE0B2' }}>
+                <AlertCircle className="size-4 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-medium">Lokasi tidak terdeteksi</p>
+                  <p className="mt-0.5">{gpsError}</p>
+                  <p className="mt-1">Tidak apa-apa Bapak/Ibu. Jika lokasi GPS tidak diaktifkan, silakan ketik alamat lengkap rumah calon siswa agar saya bantu cek secara manual.</p>
+                </div>
+              </div>
+            )}
+
+            {usingGps && gpsLat !== null && gpsLon !== null && (
+              <div className="rounded-xl p-3 text-xs flex items-center gap-2" style={{ backgroundColor: '#E3F2FD', color: '#1565C0', border: '1px solid #BBDEFB' }}>
+                <Navigation className="size-4 shrink-0" />
+                <p>Lokasi GPS terdeteksi: {gpsLat.toFixed(4)}, {gpsLon.toFixed(4)} (Kec. Lemahabang)</p>
+              </div>
+            )}
+
+            {/* Cari Button */}
             <button
               onClick={handleSearch}
               disabled={!isFormValid || isSearching}
@@ -232,67 +269,24 @@ export function CekDomisiliPage() {
               ) : (
                 <>
                   <Search className="size-4" />
-                  Cari Sekolah Terdekat
+                  Cek Sekolah Terdekat
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* GPS Info */}
-        {gpsLoading && (
-          <div
-            className="rounded-xl p-3 text-xs flex items-center gap-2"
-            style={{ backgroundColor: '#E3F2FD', color: '#1565C0', border: '1px solid #BBDEFB' }}
-          >
-            <div className="size-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-            <p>Mendeteksi lokasi GPS...</p>
-          </div>
-        )}
-        {gpsError && (
-          <div
-            className="rounded-xl p-3 text-xs flex items-center gap-2"
-            style={{ backgroundColor: '#FFEBEE', color: '#C62828', border: '1px solid #FFCDD2' }}
-          >
-            <AlertCircle className="size-4 shrink-0" />
-            <p>{gpsError}</p>
-          </div>
-        )}
-        {usingGps && gpsLat !== null && gpsLon !== null && (
-          <div
-            className="rounded-xl p-3 text-xs flex items-center gap-2"
-            style={{ backgroundColor: '#E3F2FD', color: '#1565C0', border: '1px solid #BBDEFB' }}
-          >
-            <Navigation className="size-4 shrink-0" />
-            <p>Lokasi GPS terdeteksi: {gpsLat.toFixed(4)}, {gpsLon.toFixed(4)} (Kec. Lemahabang)</p>
-          </div>
-        )}
-
         {/* KK Info */}
-        <div
-          className="rounded-xl p-3 text-xs"
-          style={{ backgroundColor: '#FFF3E0', color: '#E65100', border: '1px solid #FFCC80' }}
-        >
-          <div className="flex items-start gap-2">
-            <AlertCircle className="size-4 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium">Syarat KK Jalur Domisili/Zonasi</p>
-              <p className="mt-0.5">
-                Kartu Keluarga (KK) harus diterbitkan <strong>paling singkat 1 tahun</strong> sebelum tanggal pendaftaran dibuka. Pastikan data KK sinkron dengan akta kelahiran untuk menghindari penolakan otomatis oleh sistem.
-              </p>
-              <p className="mt-1">
-                Jika kuota zonasi penuh, seleksi diurutkan dari <strong>usia tertua ke usia termuda</strong> di dalam zona.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {isSearching && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <div className="flex flex-col items-center gap-3">
-              <div className="size-10 rounded-full border-3 border-blue-200 border-t-[#1565C0] animate-spin" style={{ borderWidth: '3px' }} />
-              <p className="text-sm" style={{ color: '#6B7280' }}>Mencari sekolah terdekat...</p>
+        {!hasSearched && (
+          <div className="rounded-xl p-3 text-xs" style={{ backgroundColor: '#FFF3E0', color: '#E65100', border: '1px solid #FFCC80' }}>
+            <div className="flex items-start gap-2">
+              <AlertCircle className="size-4 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium">Syarat KK Jalur Domisili</p>
+                <p className="mt-0.5">
+                  Kartu Keluarga (KK) harus diterbitkan <strong>paling singkat 1 tahun</strong> sebelum tanggal pendaftaran dibuka. Pastikan data KK sinkron dengan akta kelahiran untuk menghindari penolakan otomatis oleh sistem.
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -303,22 +297,40 @@ export function CekDomisiliPage() {
             <div className="flex items-center gap-2">
               <School className="size-5" style={{ color: '#1565C0' }} />
               <h2 className="text-sm font-semibold" style={{ color: '#1F2937' }}>
-                Sekolah Terdekat ({results.length} sekolah)
+                Sekolah Terdekat
               </h2>
             </div>
 
-            {results.map((schoolDist, idx) => {
+            {/* Recommendation */}
+            {nearestAvailable && (
+              <div className="rounded-xl p-3 text-xs" style={{ backgroundColor: '#E8F5E9', color: '#2E7D32', border: '1px solid #C8E6C9' }}>
+                <div className="flex items-start gap-2">
+                  <CheckCircle className="size-4 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">Rekomendasi</p>
+                    <p className="mt-0.5">
+                      {nearestAvailable.school.namaSekolah} — jarak {formatDistance(nearestAvailable.jarakKm)}, sisa kuota {nearestAvailable.school.sisaKuota} siswa.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {results.slice(0, 5).map((schoolDist, idx) => {
               const school = schoolDist.school;
               const quotaCheck = checkQuota(school);
               const badgeConfig = getQuotaBadgeConfig(quotaCheck.statusKuota);
               const isFull = quotaCheck.statusKuota === 'Penuh';
+              const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${school.latitude},${school.longitude}`;
+              const routeUrl = gpsLat !== null && gpsLon !== null
+                ? `https://www.google.com/maps/dir/?api=1&origin=${gpsLat},${gpsLon}&destination=${school.latitude},${school.longitude}&travelmode=driving`
+                : null;
 
               return (
                 <div
                   key={school.schoolId}
                   className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                 >
-                  {/* School Header */}
                   <div className="flex items-start justify-between gap-2 px-4 pt-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -333,18 +345,17 @@ export function CekDomisiliPage() {
                         </p>
                       </div>
                       <p className="text-xs mt-1 ml-8" style={{ color: '#6B7280' }}>
-                        {school.alamat}
+                        Desa {school.desa}, Kec. {school.kecamatan}
                       </p>
                     </div>
                   </div>
 
-                  {/* Distance & Quota */}
                   <div className="px-4 pt-3 pb-1">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <MapPin className="size-3.5" style={{ color: '#6B7280' }} />
                         <span className="text-sm font-bold" style={{ color: '#1565C0' }}>
-                          {schoolDist.jarakKm} km
+                          {formatDistance(schoolDist.jarakKm)}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -358,54 +369,78 @@ export function CekDomisiliPage() {
                       </div>
                     </div>
 
-                    {/* Quota Bar */}
                     <div className="flex items-center gap-2 mt-2">
                       <div className="flex-1 h-2 rounded-full bg-gray-200 overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
-                            width: `${Math.round((school.sisaKuota / school.kuota) * 100)}%`,
-                            backgroundColor: isFull ? '#EF4444' : quotaCheck.statusKuota === 'Hampir Penuh' ? '#F59E0B' : '#43A047',
+                            width: `${Math.min(100, Math.round((school.sisaKuota / Math.max(school.kuota, 1)) * 100))}%`,
+                            backgroundColor: isFull ? '#EF4444' : quotaCheck.statusKuota === 'Terbatas' ? '#F59E0B' : '#43A047',
                           }}
                         />
                       </div>
                       <span className="text-xs font-medium shrink-0" style={{ color: '#1F2937' }}>
-                        {school.sisaKuota}/{school.kuota}
+                        Sisa: {school.sisaKuota}
                       </span>
                     </div>
                   </div>
 
-                  {/* Action */}
-                  <div className="px-4 py-3">
-                    {isFull ? (
-                      <div
-                        className="rounded-lg p-3 text-xs flex items-start gap-2"
-                        style={{ backgroundColor: '#FFEBEE', color: '#C62828' }}
-                      >
-                        <XCircle className="size-4 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Sekolah Penuh</p>
-                          <p className="mt-0.5" style={{ color: '#E53935' }}>
-                            Kuota sekolah ini sudah terpenuhi. Silakan pilih sekolah lain yang masih tersedia.
-                          </p>
-                        </div>
+                  {isFull && (
+                    <div className="px-4 pt-2">
+                      <div className="rounded-lg p-2.5 text-xs" style={{ backgroundColor: '#FFEBEE', color: '#C62828', border: '1px solid #FFCDD2' }}>
+                        <p className="font-medium">{school.namaSekolah} paling dekat, tetapi kuota sudah penuh.</p>
+                        <p className="mt-0.5">Silakan pilih sekolah alternatif yang masih memiliki kuota.</p>
                       </div>
-                    ) : (
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 px-4 py-3">
+                    {!isFull && (
                       <button
                         onClick={() => handlePilihSekolah(schoolDist)}
-                        className="w-full h-10 rounded-lg text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                        className="flex-1 h-10 rounded-lg text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
                         style={{ backgroundColor: '#1565C0' }}
                       >
                         Pilih Sekolah
-                        <ArrowRight className="size-4" />
+                        <ArrowRight className="size-3.5" />
                       </button>
+                    )}
+                    <a
+                      href={mapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 h-10 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+                      style={{
+                        backgroundColor: '#F3F8FF',
+                        color: '#1565C0',
+                        border: '1px solid #BBDEFB',
+                      }}
+                    >
+                      <ExternalLink className="size-3.5" />
+                      Lihat Maps
+                    </a>
+                    {routeUrl && (
+                      <a
+                        href={routeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 h-10 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-[0.98]"
+                        style={{
+                          backgroundColor: '#F3F8FF',
+                          color: '#43A047',
+                          border: '1px solid #C8E6C9',
+                        }}
+                      >
+                        <Route className="size-3.5" />
+                        Lihat Rute
+                      </a>
                     )}
                   </div>
                 </div>
               );
             })}
 
-            {/* Lanjut Daftar Button */}
+            {/* Lanjut Daftar */}
             <button
               onClick={() => navigateTo('registration')}
               className="w-full h-12 rounded-lg text-white text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] mt-2"
@@ -417,7 +452,6 @@ export function CekDomisiliPage() {
           </div>
         )}
 
-        {/* No Results */}
         {hasSearched && !isSearching && results.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
             <School className="size-10 mx-auto mb-2" style={{ color: '#9CA3AF' }} />
@@ -430,7 +464,6 @@ export function CekDomisiliPage() {
           </div>
         )}
       </div>
-
     </div>
   );
 }

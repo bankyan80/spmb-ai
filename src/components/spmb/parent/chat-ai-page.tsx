@@ -5,6 +5,7 @@ import { Send, Trash2, MoreVertical, Badge, Shield, HelpCircle, School, SkipForw
 import { useSpmbStore } from '@/lib/store';
 import { AiAvatar } from '@/components/spmb/shared/ai-avatar';
 import { QuickMenuGrid } from '@/components/spmb/shared/quick-menu-grid';
+import { findNearestSchools, formatDistance } from '@/lib/business-logic';
 import type { ChatMessage, ChatActionButton, ChatStatusIndicator } from '@/lib/types';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -162,7 +163,7 @@ export function ChatAiPage() {
     });
   }, []);
 
-  const buildContext = () => {
+  const buildContext = (gpsInfo?: string) => {
     return `
 Tahun Ajaran: ${settings.tahunAjaran}
 Tanggal Acuan Usia: ${settings.tanggalAcuanUsia}
@@ -177,7 +178,13 @@ Jadwal Verifikasi: 1 Februari - 15 Februari 2026
 Jadwal Pengumuman: 1 Maret 2026
 Jadwal Daftar Ulang: 2 Maret - 15 Maret 2026
 Daftar Sekolah: ${schools.map((s) => `${s.namaSekolah} (Kuota: ${s.kuota}, Sisa: ${s.sisaKuota})`).join(', ')}
+${gpsInfo ? `\nLokasi Pengguna:\n${gpsInfo}` : ''}
     `.trim();
+  };
+
+  const isDomisiliQuery = (msg: string) => {
+    const lower = msg.toLowerCase();
+    return lower.includes('domisili') || lower.includes('sekolah terdekat') || lower.includes('lokasi') || lower.includes('cari sekolah');
   };
 
   const sendMessage = async (message: string) => {
@@ -196,6 +203,28 @@ Daftar Sekolah: ${schools.map((s) => `${s.namaSekolah} (Kuota: ${s.kuota}, Sisa:
     // Start status indicator flow
     setChatStatusIndicator('menganalisa');
 
+    // Try GPS for domisili queries
+    let gpsContext = '';
+    if (isDomisiliQuery(message)) {
+      setChatStatusIndicator('mengecek_data');
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+          });
+        });
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const nearest = findNearestSchools(lat, lon, schools, 10);
+        gpsContext = `Latitude: ${lat}, Longitude: ${lon}\nSekolah Terdekat (berdasarkan jarak):\n${nearest.slice(0, 5).map((sd, i) =>
+          `${i + 1}. ${sd.school.namaSekolah} — ${formatDistance(sd.jarakKm)} (Sisa Kuota: ${sd.school.sisaKuota})`
+        ).join('\n')}`;
+      } catch {
+        gpsContext = 'Lokasi GPS tidak tersedia. Pengguna tidak mengaktifkan GPS. Jika ada pertanyaan tentang sekolah terdekat, berikan informasi sekolah yang tersedia dan sarankan untuk menggunakan fitur Cek Domisili.';
+      }
+    }
+
     // Simulate analysis steps
     statusTimeoutRef.current = setTimeout(() => {
       setChatStatusIndicator('mengecek_data');
@@ -207,7 +236,7 @@ Daftar Sekolah: ${schools.map((s) => `${s.namaSekolah} (Kuota: ${s.kuota}, Sisa:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: message.trim(),
-          context: buildContext(),
+          context: buildContext(gpsContext),
         }),
       });
 

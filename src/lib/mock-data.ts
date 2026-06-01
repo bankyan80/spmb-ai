@@ -3,49 +3,63 @@
 import { School, Applicant, SettingsSPMB, User, Announcement } from './types';
 
 const SCHOOL_COORDS: Record<string, [number, number]> = {
-  Asem: [-6.8350, 108.6250],
-  Belawa: [-6.8400, 108.6400],
-  'Cipeujeuh Kulon': [-6.8280, 108.6180],
-  'Cipeujeuh Wetan': [-6.8250, 108.6300],
-  Lemahabang: [-6.8333, 108.6350],
-  'Lemahabang Kulon': [-6.8300, 108.6280],
-  Leuwidingding: [-6.8380, 108.6450],
-  Picungpugur: [-6.8420, 108.6500],
-  Sarajaya: [-6.8450, 108.6550],
-  Sigong: [-6.8200, 108.6200],
-  'Sindang Laut': [-6.8480, 108.6600],
-  'Tuk Karangsuwung': [-6.8180, 108.6150],
-  Wangkelang: [-6.8500, 108.6650],
+  '20215287': [-6.831667, 108.615000],
+  '20215230': [-6.832500, 108.585556],
+  '20215216': [-6.844444, 108.620000],
+  '20214570': [-6.835556, 108.639722],
+  '20214479': [-6.827222, 108.620556],
+  '20214656': [-6.831389, 108.628056],
+  '20214726': [-6.838611, 108.643611],
+  '20215464': [-6.836111, 108.620278],
+  '20215161': [-6.824444, 108.628611],
+  '20215164': [-6.843611, 108.624444],
+  '20215221': [-6.827222, 108.628333],
+  '20215381': [-6.831944, 108.606944],
+  '20215380': [-6.830556, 108.625556],
+  '20215286': [-6.835278, 108.621111],
+  '20215506': [-6.837500, 108.639722],
+  '20215517': [-6.843333, 108.643056],
+  '20215564': [-6.835556, 108.582222],
+  '20246442': [-6.851556, 108.625444],
+  '20246445': [-6.835000, 108.630000],
+  '20215162': [-6.831944, 108.629444],
+  '20215584': [-6.833889, 108.574722],
+  '20244513': [-6.827206, 108.647168],
 };
 
-function coords(desa: string): [number, number] {
-  return SCHOOL_COORDS[desa] || [-6.8333, 108.6333];
+function coords(npsn: string): [number, number] {
+  return SCHOOL_COORDS[npsn] || [-6.8333, 108.6333];
 }
 
-export const mockSchools: School[] = [
-  { schoolId: 'sch-20215216', npsn: '20215216', namaSekolah: 'SD NEGERI 1 ASEM', jenjang: 'SD', alamat: 'Jl. Raya Asem, Kec. Lemahabang', desa: 'Asem', kecamatan: 'Lemahabang', latitude: coords('Asem')[0], longitude: coords('Asem')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215230', npsn: '20215230', namaSekolah: 'SD NEGERI 1 BELAWA', jenjang: 'SD', alamat: 'Jl. Raya Belawa, Kec. Lemahabang', desa: 'Belawa', kecamatan: 'Lemahabang', latitude: coords('Belawa')[0], longitude: coords('Belawa')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215287', npsn: '20215287', namaSekolah: 'SD NEGERI 1 CIPEUJEUH KULON', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Kulon, Kec. Lemahabang', desa: 'Cipeujeuh Kulon', kecamatan: 'Lemahabang', latitude: coords('Cipeujeuh Kulon')[0], longitude: coords('Cipeujeuh Kulon')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215286', npsn: '20215286', namaSekolah: 'SD NEGERI 1 CIPEUJEUH WETAN', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Wetan, Kec. Lemahabang', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', latitude: coords('Cipeujeuh Wetan')[0], longitude: coords('Cipeujeuh Wetan')[1], kuota: 80, sisaKuota: 80, statusAktif: true },
-  { schoolId: 'sch-20215162', npsn: '20215162', namaSekolah: 'SD NEGERI 1 LEMAHABANG', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang, Kec. Lemahabang', desa: 'Lemahabang', kecamatan: 'Lemahabang', latitude: coords('Lemahabang')[0], longitude: coords('Lemahabang')[1], kuota: 80, sisaKuota: 80, statusAktif: true },
-  { schoolId: 'sch-20215161', npsn: '20215161', namaSekolah: 'SD NEGERI 1 LEMAHABANG KULON', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang Kulon, Kec. Lemahabang', desa: 'Lemahabang Kulon', kecamatan: 'Lemahabang', latitude: coords('Lemahabang Kulon')[0], longitude: coords('Lemahabang Kulon')[1], kuota: 80, sisaKuota: 80, statusAktif: true },
-  { schoolId: 'sch-20215164', npsn: '20215164', namaSekolah: 'SD NEGERI 1 LEUWIDINGDING', jenjang: 'SD', alamat: 'Jl. Raya Leuwidingding, Kec. Lemahabang', desa: 'Leuwidingding', kecamatan: 'Lemahabang', latitude: coords('Leuwidingding')[0], longitude: coords('Leuwidingding')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20246442', npsn: '20246442', namaSekolah: 'SD NEGERI 1 PICUNGPUGUR', jenjang: 'SD', alamat: 'Jl. Raya Picungpugur, Kec. Lemahabang', desa: 'Picungpugur', kecamatan: 'Lemahabang', latitude: coords('Picungpugur')[0], longitude: coords('Picungpugur')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215517', npsn: '20215517', namaSekolah: 'SD NEGERI 1 SARAJAYA', jenjang: 'SD', alamat: 'Jl. Raya Sarajaya, Kec. Lemahabang', desa: 'Sarajaya', kecamatan: 'Lemahabang', latitude: coords('Sarajaya')[0], longitude: coords('Sarajaya')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215506', npsn: '20215506', namaSekolah: 'SD NEGERI 1 SIGONG', jenjang: 'SD', alamat: 'Jl. Raya Sigong, Kec. Lemahabang', desa: 'Sigong', kecamatan: 'Lemahabang', latitude: coords('Sigong')[0], longitude: coords('Sigong')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215464', npsn: '20215464', namaSekolah: 'SD NEGERI 1 SINDANGLAUT', jenjang: 'SD', alamat: 'Jl. Raya Sindang Laut, Kec. Lemahabang', desa: 'Sindang Laut', kecamatan: 'Lemahabang', latitude: coords('Sindang Laut')[0], longitude: coords('Sindang Laut')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20246445', npsn: '20246445', namaSekolah: 'SD NEGERI 1 TUK KARANGSUWUNG', jenjang: 'SD', alamat: 'Jl. Raya Tuk Karangsuwung, Kec. Lemahabang', desa: 'Tuk Karangsuwung', kecamatan: 'Lemahabang', latitude: coords('Tuk Karangsuwung')[0], longitude: coords('Tuk Karangsuwung')[1], kuota: 80, sisaKuota: 80, statusAktif: true },
-  { schoolId: 'sch-20215584', npsn: '20215584', namaSekolah: 'SD NEGERI 1 WANGKELANG', jenjang: 'SD', alamat: 'Jl. Raya Wangkelang, Kec. Lemahabang', desa: 'Wangkelang', kecamatan: 'Lemahabang', latitude: coords('Wangkelang')[0], longitude: coords('Wangkelang')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215564', npsn: '20215564', namaSekolah: 'SD NEGERI 2 BELAWA', jenjang: 'SD', alamat: 'Jl. Raya Belawa, Kec. Lemahabang', desa: 'Belawa', kecamatan: 'Lemahabang', latitude: coords('Belawa')[0], longitude: coords('Belawa')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215381', npsn: '20215381', namaSekolah: 'SD NEGERI 2 CIPEUJEUH KULON', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Kulon, Kec. Lemahabang', desa: 'Cipeujeuh Kulon', kecamatan: 'Lemahabang', latitude: coords('Cipeujeuh Kulon')[0], longitude: coords('Cipeujeuh Kulon')[1], kuota: 80, sisaKuota: 80, statusAktif: true },
-  { schoolId: 'sch-20215380', npsn: '20215380', namaSekolah: 'SD NEGERI 2 CIPEUJEUH WETAN', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Wetan, Kec. Lemahabang', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', latitude: coords('Cipeujeuh Wetan')[0], longitude: coords('Cipeujeuh Wetan')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20214656', npsn: '20214656', namaSekolah: 'SD NEGERI 2 LEMAHABANG', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang, Kec. Lemahabang', desa: 'Lemahabang', kecamatan: 'Lemahabang', latitude: coords('Lemahabang')[0], longitude: coords('Lemahabang')[1], kuota: 80, sisaKuota: 80, statusAktif: true },
-  { schoolId: 'sch-20214726', npsn: '20214726', namaSekolah: 'SD NEGERI 2 SARAJAYA', jenjang: 'SD', alamat: 'Jl. Raya Sarajaya, Kec. Lemahabang', desa: 'Sarajaya', kecamatan: 'Lemahabang', latitude: coords('Sarajaya')[0], longitude: coords('Sarajaya')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20214479', npsn: '20214479', namaSekolah: 'SD NEGERI 3 CIPEUJEUH WETAN', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Wetan, Kec. Lemahabang', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', latitude: coords('Cipeujeuh Wetan')[0], longitude: coords('Cipeujeuh Wetan')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20214570', npsn: '20214570', namaSekolah: 'SD NEGERI 3 SIGONG', jenjang: 'SD', alamat: 'Jl. Raya Sigong, Kec. Lemahabang', desa: 'Sigong', kecamatan: 'Lemahabang', latitude: coords('Sigong')[0], longitude: coords('Sigong')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20244513', npsn: '20244513', namaSekolah: 'SD NEGERI 4 SIGONG', jenjang: 'SD', alamat: 'Jl. Raya Sigong, Kec. Lemahabang', desa: 'Sigong', kecamatan: 'Lemahabang', latitude: coords('Sigong')[0], longitude: coords('Sigong')[1], kuota: 40, sisaKuota: 40, statusAktif: true },
-  { schoolId: 'sch-20215221', npsn: '20215221', namaSekolah: 'SDIT AL IRSYAD AL ISLAMIYAH', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang, Kec. Lemahabang', desa: 'Lemahabang', kecamatan: 'Lemahabang', latitude: coords('Lemahabang')[0], longitude: coords('Lemahabang')[1], kuota: 160, sisaKuota: 160, statusAktif: true },
+const SCHOOL_DATA: (Omit<School, 'schoolId' | 'latitude' | 'longitude'>)[] = [
+  { npsn: '20215216', namaSekolah: 'SD NEGERI 1 ASEM', jenjang: 'SD', alamat: 'Jl. Raya Asem, Kec. Lemahabang', desa: 'Asem', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215230', namaSekolah: 'SD NEGERI 1 BELAWA', jenjang: 'SD', alamat: 'Jl. Raya Belawa, Kec. Lemahabang', desa: 'Belawa', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215287', namaSekolah: 'SD NEGERI 1 CIPEUJEUH KULON', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Kulon, Kec. Lemahabang', desa: 'Cipeujeuh Kulon', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215286', namaSekolah: 'SD NEGERI 1 CIPEUJEUH WETAN', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Wetan, Kec. Lemahabang', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 80, sisaKuota: 80, statusAktif: true },
+  { npsn: '20215162', namaSekolah: 'SD NEGERI 1 LEMAHABANG', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang, Kec. Lemahabang', desa: 'Lemahabang', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 80, sisaKuota: 80, statusAktif: true },
+  { npsn: '20215161', namaSekolah: 'SD NEGERI 1 LEMAHABANG KULON', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang Kulon, Kec. Lemahabang', desa: 'Lemahabang Kulon', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 80, sisaKuota: 80, statusAktif: true },
+  { npsn: '20215164', namaSekolah: 'SD NEGERI 1 LEUWIDINGDING', jenjang: 'SD', alamat: 'Jl. Raya Leuwidingding, Kec. Lemahabang', desa: 'Leuwidingding', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20246442', namaSekolah: 'SD NEGERI 1 PICUNGPUGUR', jenjang: 'SD', alamat: 'Jl. Raya Picungpugur, Kec. Lemahabang', desa: 'Picungpugur', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215517', namaSekolah: 'SD NEGERI 1 SARAJAYA', jenjang: 'SD', alamat: 'Jl. Raya Sarajaya, Kec. Lemahabang', desa: 'Sarajaya', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215506', namaSekolah: 'SD NEGERI 1 SIGONG', jenjang: 'SD', alamat: 'Jl. Raya Sigong, Kec. Lemahabang', desa: 'Sigong', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215464', namaSekolah: 'SD NEGERI 1 SINDANGLAUT', jenjang: 'SD', alamat: 'Jl. Raya Sindang Laut, Kec. Lemahabang', desa: 'Sindang Laut', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20246445', namaSekolah: 'SD NEGERI 1 TUK KARANGSUWUNG', jenjang: 'SD', alamat: 'Jl. Raya Tuk Karangsuwung, Kec. Lemahabang', desa: 'Tuk Karangsuwung', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 80, sisaKuota: 80, statusAktif: true },
+  { npsn: '20215584', namaSekolah: 'SD NEGERI 1 WANGKELANG', jenjang: 'SD', alamat: 'Jl. Raya Wangkelang, Kec. Lemahabang', desa: 'Wangkelang', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215564', namaSekolah: 'SD NEGERI 2 BELAWA', jenjang: 'SD', alamat: 'Jl. Raya Belawa, Kec. Lemahabang', desa: 'Belawa', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215381', namaSekolah: 'SD NEGERI 2 CIPEUJEUH KULON', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Kulon, Kec. Lemahabang', desa: 'Cipeujeuh Kulon', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 80, sisaKuota: 80, statusAktif: true },
+  { npsn: '20215380', namaSekolah: 'SD NEGERI 2 CIPEUJEUH WETAN', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Wetan, Kec. Lemahabang', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20214656', namaSekolah: 'SD NEGERI 2 LEMAHABANG', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang, Kec. Lemahabang', desa: 'Lemahabang', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 80, sisaKuota: 80, statusAktif: true },
+  { npsn: '20214726', namaSekolah: 'SD NEGERI 2 SARAJAYA', jenjang: 'SD', alamat: 'Jl. Raya Sarajaya, Kec. Lemahabang', desa: 'Sarajaya', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20214479', namaSekolah: 'SD NEGERI 3 CIPEUJEUH WETAN', jenjang: 'SD', alamat: 'Jl. Raya Cipeujeuh Wetan, Kec. Lemahabang', desa: 'Cipeujeuh Wetan', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20214570', namaSekolah: 'SD NEGERI 3 SIGONG', jenjang: 'SD', alamat: 'Jl. Raya Sigong, Kec. Lemahabang', desa: 'Sigong', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20244513', namaSekolah: 'SD NEGERI 4 SIGONG', jenjang: 'SD', alamat: 'Jl. Raya Sigong, Kec. Lemahabang', desa: 'Sigong', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 40, sisaKuota: 40, statusAktif: true },
+  { npsn: '20215221', namaSekolah: 'SDIT AL IRSYAD AL ISLAMIYAH', jenjang: 'SD', alamat: 'Jl. Raya Lemahabang, Kec. Lemahabang', desa: 'Lemahabang', kecamatan: 'Lemahabang', kabupaten: 'Cirebon', kuota: 160, sisaKuota: 160, statusAktif: true },
 ];
+
+export const mockSchools: School[] = SCHOOL_DATA.map((s) => {
+  const [lat, lng] = coords(s.npsn);
+  return { ...s, schoolId: `sch-${s.npsn}`, latitude: lat, longitude: lng };
+});
 
 const _schoolNameToId: Record<string, string> = {};
 for (const s of mockSchools) {
