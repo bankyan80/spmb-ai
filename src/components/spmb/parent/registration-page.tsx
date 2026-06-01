@@ -250,8 +250,11 @@ export function RegistrationPage() {
       }
       if (!formData.tanggalLahir) {
         newErrors.tanggalLahir = 'Tanggal lahir wajib diisi';
-      } else if (ageResult && (ageResult.statusUsia === 'belum_memenuhi' || ageResult.statusUsia === 'perlu_rekomendasi')) {
-        newErrors.tanggalLahir = ageResult.pesan;
+      } else {
+        const usiaCheck = calculateAge(formData.tanggalLahir, settings.tanggalAcuanUsia, settings.usiaMinimalSD, settings.usiaPrioritasSD);
+        if (usiaCheck.statusUsia === 'belum_memenuhi' || usiaCheck.statusUsia === 'perlu_rekomendasi') {
+          newErrors.tanggalLahir = usiaCheck.pesan;
+        }
       }
       if (!formData.jenisKelamin) {
         newErrors.jenisKelamin = 'Jenis kelamin wajib dipilih';
@@ -319,6 +322,16 @@ export function RegistrationPage() {
   };
 
   const handleSubmit = () => {
+    // Re-validate age as safety net
+    if (formData.tanggalLahir) {
+      const usiaCheck = calculateAge(formData.tanggalLahir, settings.tanggalAcuanUsia, settings.usiaMinimalSD, settings.usiaPrioritasSD);
+      if (usiaCheck.statusUsia === 'belum_memenuhi' || usiaCheck.statusUsia === 'perlu_rekomendasi') {
+        setErrors({ tanggalLahir: usiaCheck.pesan });
+        setRegistrationStep(1);
+        return;
+      }
+    }
+
     const nomor = generateRegistrationNumber();
     setNomorRegistrasi(nomor);
 
