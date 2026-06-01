@@ -2,17 +2,17 @@
 
 import { create } from 'zustand';
 import { AppPage, UserRole, User, Applicant, ChatMessage, ParentAccess, ChatAISettings, ChatStatusIndicator } from './types';
-import { mockSchools, mockApplicants, mockSettings, mockUsers, mockAnnouncements } from './mock-data';
+import { mockSettings } from './mock-data';
 import type { School, SettingsSPMB, Announcement } from './types';
 
-async function fetchApi<T>(url: string, fallback: T): Promise<T> {
+async function fetchApi<T>(url: string): Promise<T | null> {
   try {
     const res = await fetch(url);
-    if (!res.ok) return fallback;
+    if (!res.ok) return null;
     const json = await res.json();
-    return json.success && json.data ? json.data : fallback;
+    return json.success && json.data ? json.data : null;
   } catch {
-    return fallback;
+    return null;
   }
 }
 
@@ -186,7 +186,7 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   // Actions
   loginWithGoogle: (email) => {
     const users = get().users;
-    const user = (users.length ? users : mockUsers).find(
+    const user = users.find(
       (u) => u.email.toLowerCase() === email.toLowerCase() && u.statusAktif
     );
     if (user) {
@@ -205,19 +205,19 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
 
   loginParent: (identifier, type) => {
     const applicants = get().applicants;
-    const pool = applicants.length ? applicants : mockApplicants;
+    if (applicants.length === 0) return false;
 
     let found = false;
     if (type === 'hp') {
-      found = pool.some((a) => a.noHpOrtu === identifier);
+      found = applicants.some((a) => a.noHpOrtu === identifier);
     } else if (type === 'nik') {
-      found = pool.some((a) => a.nik === identifier);
+      found = applicants.some((a) => a.nik === identifier);
     } else if (type === 'noreg') {
-      found = pool.some((a) => a.nomorPendaftaran === identifier);
+      found = applicants.some((a) => a.nomorPendaftaran === identifier);
     }
 
     if (found || identifier.length >= 5) {
-      const applicant = pool.find((a) => {
+      const applicant = applicants.find((a) => {
         if (type === 'hp') return a.noHpOrtu === identifier;
         if (type === 'nik') return a.nik === identifier;
         if (type === 'noreg') return a.nomorPendaftaran === identifier;
@@ -260,16 +260,16 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
     if (get().dataLoaded) return;
 
     const [schools, applicants, announcements] = await Promise.all([
-      fetchApi<School[]>('/api/schools', mockSchools),
-      fetchApi<Applicant[]>('/api/applicants', mockApplicants),
-      fetchApi<Announcement[]>('/api/announcements', mockAnnouncements),
+      fetchApi<School[]>('/api/schools'),
+      fetchApi<Applicant[]>('/api/applicants'),
+      fetchApi<Announcement[]>('/api/announcements'),
     ]);
 
     set({
       dataLoaded: true,
-      schools,
-      applicants,
-      announcements,
+      schools: schools ?? [],
+      applicants: applicants ?? [],
+      announcements: announcements ?? [],
     });
   },
 
