@@ -54,6 +54,7 @@ export interface User {
   schoolId: string;
   statusAktif: boolean;
   createdAt: string;
+  password?: string;
   mustChangePassword?: boolean;
 }
 

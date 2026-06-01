@@ -72,11 +72,13 @@ interface SpmbState {
   searchKeyword: string;
 
   // Actions
-  loginWithGoogle: (email: string) => boolean;
+  loginPetugas: (email: string, password: string) => boolean;
   loginParent: (identifier: string, type: 'hp' | 'nik' | 'noreg') => boolean;
   verifyOtp: (otp: string) => boolean;
   logout: () => void;
   setParentAccess: (data: ParentAccess) => void;
+  clearMustChangePassword: () => void;
+  setUserPassword: (uid: string, newPassword: string) => void;
 
   // Applicant actions
   addApplicant: (applicant: Applicant) => void;
@@ -184,12 +186,12 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
   searchKeyword: '',
 
   // Actions
-  loginWithGoogle: (email) => {
+  loginPetugas: (email, password) => {
     const users = get().users;
     const user = users.find(
       (u) => u.email.toLowerCase() === email.toLowerCase() && u.statusAktif
     );
-    if (user) {
+    if (user && user.password === password) {
       set({ currentUser: user, isAuthenticated: true });
       if (user.mustChangePassword) {
         get().navigateTo('ubah-password');
@@ -287,6 +289,17 @@ export const useSpmbStore = create<SpmbState>((set, get) => ({
         get().navigateTo('admin-dashboard');
       }
     }
+  },
+  setUserPassword: (uid: string, newPassword: string) => {
+    set((state) => ({
+      users: state.users.map((u) =>
+        u.uid === uid ? { ...u, password: newPassword, mustChangePassword: false } : u
+      ),
+      currentUser:
+        state.currentUser?.uid === uid
+          ? { ...state.currentUser, password: newPassword, mustChangePassword: false }
+          : state.currentUser,
+    }));
   },
 
   // Applicant actions

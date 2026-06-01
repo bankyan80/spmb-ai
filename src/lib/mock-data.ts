@@ -117,12 +117,15 @@ const csvUserData: { uid: string; nama: string; email: string; schoolName: strin
 
 const NOW = '2026-05-31T00:00:00Z';
 
+const DEFAULT_PASSWORD = 'spmb2026';
+
 const csvUsers: User[] = csvUserData.map((u) => ({
   uid: u.uid,
   nama: u.nama,
   email: u.email,
   role: 'operator' as const,
   schoolId: schoolId(u.schoolName),
+  password: DEFAULT_PASSWORD,
   statusAktif: true,
   createdAt: NOW,
   mustChangePassword: true,
@@ -135,6 +138,7 @@ export const mockUsers: User[] = [
     email: 'admin@spmb.kec.id',
     role: 'admin',
     schoolId: '',
+    password: DEFAULT_PASSWORD,
     statusAktif: true,
     createdAt: '2026-01-01T00:00:00Z',
   },
@@ -144,6 +148,7 @@ export const mockUsers: User[] = [
     email: 'yanuarhidayat80@gmail.com',
     role: 'admin',
     schoolId: '',
+    password: DEFAULT_PASSWORD,
     statusAktif: true,
     createdAt: '2026-01-01T00:00:00Z',
   },

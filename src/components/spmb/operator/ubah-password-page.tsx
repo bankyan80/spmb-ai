@@ -6,7 +6,7 @@ import { KeyRound } from 'lucide-react';
 
 export function UbahPasswordPage() {
   const user = useSpmbStore((s) => s.currentUser);
-  const clearMustChangePassword = useSpmbStore((s) => s.clearMustChangePassword);
+  const setUserPassword = useSpmbStore((s) => s.setUserPassword);
 
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -30,21 +30,15 @@ export function UbahPasswordPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/change-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: user?.uid, password }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Gagal mengubah password');
+      if (user) {
+        setUserPassword(user.uid, password);
       }
-
       setSuccess(true);
-      setTimeout(() => clearMustChangePassword(), 1500);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Gagal mengubah password');
+      setTimeout(() => {
+        useSpmbStore.getState().clearMustChangePassword();
+      }, 1500);
+    } catch {
+      setError('Gagal mengubah password');
     }
 
     setLoading(false);
