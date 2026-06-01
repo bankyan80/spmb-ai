@@ -138,6 +138,15 @@ export const mockUsers: User[] = [
     statusAktif: true,
     createdAt: '2026-01-01T00:00:00Z',
   },
+  {
+    uid: 'usr-kecamatan',
+    nama: 'Yanuar Hidayat',
+    email: 'yanuarhidayat80@gmail.com',
+    role: 'admin',
+    schoolId: '',
+    statusAktif: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
   ...csvUsers,
 ];
 
