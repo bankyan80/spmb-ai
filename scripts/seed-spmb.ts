@@ -12,6 +12,26 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const SCHOOL_COORDS: Record<string, [number, number]> = {
+  Asem: [-6.8350, 108.6250],
+  Belawa: [-6.8400, 108.6400],
+  'Cipeujeuh Kulon': [-6.8280, 108.6180],
+  'Cipeujeuh Wetan': [-6.8250, 108.6300],
+  Lemahabang: [-6.8333, 108.6350],
+  'Lemahabang Kulon': [-6.8300, 108.6280],
+  Leuwidingding: [-6.8380, 108.6450],
+  Picungpugur: [-6.8420, 108.6500],
+  Sarajaya: [-6.8450, 108.6550],
+  Sigong: [-6.8200, 108.6200],
+  'Sindang Laut': [-6.8480, 108.6600],
+  'Tuk Karangsuwung': [-6.8180, 108.6150],
+  Wangkelang: [-6.8500, 108.6650],
+};
+
+function coords(desa: string): [number, number] {
+  return SCHOOL_COORDS[desa] || [-6.8333, 108.6333];
+}
+
 const defaultSchools = [
   { namaSekolah: 'SD NEGERI 1 ASEM', npsn: '20215216', desa: 'Asem', kecamatan: 'Lemahabang', kuota: 40 },
   { namaSekolah: 'SD NEGERI 1 BELAWA', npsn: '20215230', desa: 'Belawa', kecamatan: 'Lemahabang', kuota: 40 },
@@ -40,8 +60,8 @@ const defaultSchools = [
   schoolId: `SCH-${s.npsn}`,
   jenjang: 'SD',
   alamat: `Jl. Raya ${s.desa}, Kec. Lemahabang`,
-  latitude: -6.8333,
-  longitude: 108.6333,
+  latitude: coords(s.desa)[0],
+  longitude: coords(s.desa)[1],
   sisaKuota: s.kuota,
   statusAktif: true,
 }));

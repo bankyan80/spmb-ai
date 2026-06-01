@@ -16,9 +16,6 @@ import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
 import { findNearestSchools, checkQuota } from '@/lib/business-logic';
 import type { SchoolDistance } from '@/lib/types';
 
-const MOCK_LAT = -6.36;
-const MOCK_LON = 106.91;
-
 export function CekDomisiliPage() {
   const { navigateTo, goBack, schools, updateRegistrationData } = useSpmbStore();
 
@@ -29,12 +26,43 @@ export function CekDomisiliPage() {
   const [results, setResults] = useState<SchoolDistance[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [usingGps, setUsingGps] = useState(false);
+  const [gpsLat, setGpsLat] = useState<number | null>(null);
+  const [gpsLon, setGpsLon] = useState<number | null>(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
 
   const handleUseGps = () => {
-    setUsingGps(true);
-    setAlamat('Jl. Raya Lemahabang No. 45 RT 003/RW 005');
-    setDesa('Lemahabang');
-    setKecamatan('Lemahabang');
+    if (!navigator.geolocation) {
+      setGpsError('GPS tidak didukung di perangkat ini');
+      return;
+    }
+    setGpsLoading(true);
+    setGpsError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGpsLat(pos.coords.latitude);
+        setGpsLon(pos.coords.longitude);
+        setUsingGps(true);
+        setGpsLoading(false);
+        setDesa('Lemahabang');
+        setKecamatan('Lemahabang');
+        setAlamat(`Lokasi GPS: ${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+      },
+      (err) => {
+        setGpsLoading(false);
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
+            setGpsError('Izin GPS ditolak. Aktifkan GPS di pengaturan perangkat.');
+            break;
+          case err.POSITION_UNAVAILABLE:
+            setGpsError('Lokasi tidak tersedia. Coba di luar ruangan.');
+            break;
+          default:
+            setGpsError('Gagal mendapatkan lokasi. Coba lagi.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000 },
+    );
   };
 
   const handleSearch = () => {
@@ -43,9 +71,11 @@ export function CekDomisiliPage() {
     setIsSearching(true);
     setHasSearched(true);
 
-    // Simulate search with mock GPS coordinates
+    const lat = gpsLat ?? -6.8333;
+    const lon = gpsLon ?? 108.6333;
+
     setTimeout(() => {
-      const nearest = findNearestSchools(MOCK_LAT, MOCK_LON, schools, 10);
+      const nearest = findNearestSchools(lat, lon, schools, 10);
       setResults(nearest);
       setIsSearching(false);
     }, 800);
@@ -210,13 +240,31 @@ export function CekDomisiliPage() {
         </div>
 
         {/* GPS Info */}
-        {usingGps && (
+        {gpsLoading && (
+          <div
+            className="rounded-xl p-3 text-xs flex items-center gap-2"
+            style={{ backgroundColor: '#E3F2FD', color: '#1565C0', border: '1px solid #BBDEFB' }}
+          >
+            <div className="size-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+            <p>Mendeteksi lokasi GPS...</p>
+          </div>
+        )}
+        {gpsError && (
+          <div
+            className="rounded-xl p-3 text-xs flex items-center gap-2"
+            style={{ backgroundColor: '#FFEBEE', color: '#C62828', border: '1px solid #FFCDD2' }}
+          >
+            <AlertCircle className="size-4 shrink-0" />
+            <p>{gpsError}</p>
+          </div>
+        )}
+        {usingGps && gpsLat !== null && gpsLon !== null && (
           <div
             className="rounded-xl p-3 text-xs flex items-center gap-2"
             style={{ backgroundColor: '#E3F2FD', color: '#1565C0', border: '1px solid #BBDEFB' }}
           >
             <Navigation className="size-4 shrink-0" />
-            <p>Lokasi GPS terdeteksi: {MOCK_LAT}, {MOCK_LON} (Lemahabang, Bekasi)</p>
+            <p>Lokasi GPS terdeteksi: {gpsLat.toFixed(4)}, {gpsLon.toFixed(4)} (Kec. Lemahabang)</p>
           </div>
         )}
 

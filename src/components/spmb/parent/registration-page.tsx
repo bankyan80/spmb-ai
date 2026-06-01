@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
 import { StatusBadge } from '@/components/spmb/shared/status-badge';
-import { calculateAge, generateRegistrationNumber, formatDate, getJalurLabel } from '@/lib/business-logic';
+import { calculateAge, generateRegistrationNumber, formatDate, getJalurLabel, calculateDistance } from '@/lib/business-logic';
 import { jalurPendaftaran } from '@/lib/mock-data';
 import type { Applicant, JalurPendaftaran } from '@/lib/types';
 
@@ -120,6 +120,40 @@ export function RegistrationPage() {
   const [nikChecking, setNikChecking] = useState(false);
   const [nikFound, setNikFound] = useState<{ found: boolean; lembaga: string; jenis: string } | null>(null);
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+  const [userLat, setUserLat] = useState<number | null>(null);
+  const [userLon, setUserLon] = useState<number | null>(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+
+  const getGpsLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setGpsError('GPS tidak didukung di perangkat ini');
+      return;
+    }
+    setGpsLoading(true);
+    setGpsError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLat(pos.coords.latitude);
+        setUserLon(pos.coords.longitude);
+        setGpsLoading(false);
+      },
+      (err) => {
+        setGpsLoading(false);
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
+            setGpsError('Izin GPS ditolak. Aktifkan GPS di pengaturan perangkat.');
+            break;
+          case err.POSITION_UNAVAILABLE:
+            setGpsError('Lokasi tidak tersedia. Coba di luar ruangan.');
+            break;
+          default:
+            setGpsError('Gagal mendapatkan lokasi. Coba lagi.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000 },
+    );
+  }, []);
 
   // Sync form data with store
   useEffect(() => {
@@ -267,6 +301,18 @@ export function RegistrationPage() {
       }
       if (!formData.jalur) {
         newErrors.jalur = 'Jalur pendaftaran wajib dipilih';
+      } else if (formData.jalur === 'domisili') {
+        if (userLat === null || userLon === null) {
+          newErrors.jalur = 'Aktifkan GPS untuk verifikasi jarak domisili dengan sekolah';
+        } else if (formData.schoolId) {
+          const selectedSchool = schools.find((s) => s.schoolId === formData.schoolId);
+          if (selectedSchool && selectedSchool.latitude && selectedSchool.longitude) {
+            const jarak = calculateDistance(userLat, userLon, selectedSchool.latitude, selectedSchool.longitude);
+            if (jarak > 10) {
+              newErrors.jalur = `Jarak domisili ke sekolah ${jarak} km melebihi batas maksimal 10 km untuk Jalur Domisili`;
+            }
+          }
+        }
       }
     } else if (step === 2) {
       if (!formData.namaAyah.trim()) {
@@ -329,6 +375,19 @@ export function RegistrationPage() {
         setErrors({ tanggalLahir: usiaCheck.pesan });
         setRegistrationStep(1);
         return;
+      }
+    }
+
+    // Re-validate domisili distance as safety net
+    if (formData.jalur === 'domisili' && formData.schoolId && userLat !== null && userLon !== null) {
+      const selectedSchool = schools.find((s) => s.schoolId === formData.schoolId);
+      if (selectedSchool?.latitude && selectedSchool?.longitude) {
+        const jarak = calculateDistance(userLat, userLon, selectedSchool.latitude, selectedSchool.longitude);
+        if (jarak > 10) {
+          setErrors({ jalur: `Jarak domisili ke sekolah ${jarak} km melebihi batas maksimal 10 km` });
+          setRegistrationStep(1);
+          return;
+        }
       }
     }
 
@@ -749,6 +808,49 @@ export function RegistrationPage() {
               <p className="font-medium">
                 {jalurPendaftaran.find((j) => j.id === formData.jalur)?.deskripsi}
               </p>
+            </div>
+          )}
+
+          {formData.jalur === 'domisili' && (
+            <div>
+              {userLat !== null && userLon !== null ? (
+                <div
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-xs"
+                  style={{ backgroundColor: '#E8F5E9', color: '#2E7D32', border: '1px solid #C8E6C9' }}
+                >
+                  <CheckCircle className="size-4 shrink-0" />
+                  <span>Lokasi terdeteksi: {userLat.toFixed(4)}, {userLon.toFixed(4)}</span>
+                </div>
+              ) : (
+                <button
+                  onClick={getGpsLocation}
+                  disabled={gpsLoading}
+                  className="w-full h-11 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+                  style={{
+                    backgroundColor: '#F3F8FF',
+                    color: '#1565C0',
+                    border: '1px solid #BBDEFB',
+                  }}
+                >
+                  {gpsLoading ? (
+                    <>
+                      <div className="size-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                      Mendeteksi lokasi...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+                      Aktifkan GPS untuk Verifikasi Jarak Domisili
+                    </>
+                  )}
+                </button>
+              )}
+              {gpsError && (
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#EF4444' }}>
+                  <AlertCircle className="size-3" />
+                  {gpsError}
+                </p>
+              )}
             </div>
           )}
         </div>
