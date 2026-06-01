@@ -178,7 +178,7 @@ export function RegistrationPage() {
         const res = await fetch(`/api/siswa-tk/lookup?nik=${nik}`);
         const data = await res.json();
 
-        if (data.success && data.found && data.data) {
+        if (data.success && data.data) {
           const d = data.data;
           const filled = new Set<string>();
 
