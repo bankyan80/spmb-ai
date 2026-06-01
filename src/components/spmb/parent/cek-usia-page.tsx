@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Baby, CheckCircle, XCircle, AlertTriangle, ArrowRight, BookX } from 'lucide-react';
+import { Baby, CheckCircle, XCircle, AlertTriangle, ArrowRight, BookX, Search, User } from 'lucide-react';
 import { useSpmbStore } from '@/lib/store';
 import { SpmbHeader } from '@/components/spmb/shared/spmb-header';
 import { calculateAge, formatDate } from '@/lib/business-logic';
@@ -10,18 +10,51 @@ import type { AgeCheckResult } from '@/lib/types';
 export function CekUsiaPage() {
   const { navigateTo, goBack, settings } = useSpmbStore();
 
+  const [nik, setNik] = useState('');
   const [namaAnak, setNamaAnak] = useState('');
   const [tanggalLahir, setTanggalLahir] = useState('');
   const [tahunPendaftaran, setTahunPendaftaran] = useState('2026');
   const [result, setResult] = useState<AgeCheckResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [nikChecking, setNikChecking] = useState(false);
+  const [nikFound, setNikFound] = useState<string | null>(null);
+  const [nikError, setNikError] = useState<string | null>(null);
+
+  const checkNik = async (value: string) => {
+    if (value.length !== 16) {
+      setNikFound(null);
+      setNikError(null);
+      return;
+    }
+
+    setNikChecking(true);
+    setNikFound(null);
+    setNikError(null);
+
+    try {
+      const res = await fetch(`/api/siswa-tk/lookup?nik=${value}`);
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        const d = data.data;
+        if (d.namaSiswa) setNamaAnak(d.namaSiswa);
+        if (d.tanggalLahir) setTanggalLahir(d.tanggalLahir);
+        setNikFound(d.namaSiswa || 'Data ditemukan');
+      } else {
+        setNikError('NIK tidak ditemukan di database. Silakan isi manual.');
+      }
+    } catch {
+      setNikError('Gagal mencari NIK. Silakan isi manual.');
+    } finally {
+      setNikChecking(false);
+    }
+  };
 
   const handleCekUsia = () => {
     if (!namaAnak.trim() || !tanggalLahir) return;
 
     setIsCalculating(true);
 
-    // Simulate a brief delay for UX
     setTimeout(() => {
       const referenceDate = settings.tanggalAcuanUsia;
       const ageResult = calculateAge(tanggalLahir, referenceDate, settings.usiaMinimalSD, settings.usiaPrioritasSD);
@@ -64,14 +97,12 @@ export function CekUsiaPage() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#F3F8FF' }}>
-      {/* Header */}
       <SpmbHeader
         title="Cek Usia Anak"
         showBack
         onBack={() => goBack()}
       />
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-4 pb-4 space-y-4">
         {/* Form Card */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
@@ -83,11 +114,73 @@ export function CekUsiaPage() {
               <Baby className="size-5" style={{ color: '#009688' }} />
             </div>
             <h2 className="text-sm font-semibold" style={{ color: '#1F2937' }}>
-              Form Cek Usia Anak
+              Cek Usia Anak
             </h2>
           </div>
 
           <div className="space-y-4">
+            {/* NIK */}
+            <div>
+              <label
+                htmlFor="nik"
+                className="block text-xs font-medium mb-1.5"
+                style={{ color: '#6B7280' }}
+              >
+                NIK Anak
+              </label>
+              <div className="relative">
+                <input
+                  id="nik"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={16}
+                  value={nik}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setNik(val);
+                    if (val.length === 16) checkNik(val);
+                    if (val.length < 16) {
+                      setNikFound(null);
+                      setNikError(null);
+                    }
+                  }}
+                  placeholder="Cari data via 16 digit NIK"
+                  className="w-full h-11 rounded-lg border px-3 text-sm outline-none transition-colors pr-10"
+                  style={{
+                    borderColor: nikFound ? '#43A047' : nikError ? '#EF4444' : '#E5E7EB',
+                    backgroundColor: nikFound ? '#F0FFF4' : '#F9FAFB',
+                    color: '#1F2937',
+                  }}
+                  onFocus={(e) => { if (!nikFound && !nikError) e.target.style.borderColor = '#009688'; }}
+                  onBlur={(e) => { e.target.style.borderColor = nikFound ? '#43A047' : nikError ? '#EF4444' : '#E5E7EB'; }}
+                />
+                {nikChecking && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="size-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+                  </div>
+                )}
+                {!nikChecking && nikFound && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <CheckCircle className="size-5" style={{ color: '#43A047' }} />
+                  </div>
+                )}
+              </div>
+              {nikFound && (
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#2E7D32' }}>
+                  <CheckCircle className="size-3" />
+                  Data ditemukan — {nikFound}
+                </p>
+              )}
+              {nikError && (
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#EF4444' }}>
+                  <AlertTriangle className="size-3" />
+                  {nikError}
+                </p>
+              )}
+            </div>
+
+            <div className="h-px" style={{ backgroundColor: '#E5E7EB' }} />
+
             {/* Nama Anak */}
             <div>
               <label
